@@ -13,7 +13,7 @@ public class KademliaCommonConfig {
   public static int BITS = 256;
 
   /** Dimension of k-buckets */
-  public static int K = 16;
+  public static int K = 20;
 
   /** Number of simultaneous lookup messages */
   public static int ALPHA = 3;

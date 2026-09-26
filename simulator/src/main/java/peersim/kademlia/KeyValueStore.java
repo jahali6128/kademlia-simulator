@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import peersim.core.CommonState;
+
 /**
  * Timeout functionnality for the memory store
  *
@@ -15,7 +17,6 @@ import java.util.TimerTask;
 class TimeoutMemoryStore extends TimerTask {
   private BigInteger id;
   private KeyValueStore kv;
-
   /**
    * Constructor
    *
@@ -35,7 +36,8 @@ class TimeoutMemoryStore extends TimerTask {
 }
 
 /**
- * The memory store will keep data inside the class, for a specific amout of time
+ * The memory store will keep data inside the class, for a specific amout of
+ * time
  *
  * @author Deisss (LGPLv3)
  * @version 0.1
@@ -47,19 +49,32 @@ public class KeyValueStore {
   public KeyValueStore() {
     mem = new HashMap<>();
   }
+  
   /**
    * Add an object into the memory store
    *
-   * @param id The key of the object to store
+   * @param id  The key of the object to store
    * @param obj The object to store
    */
   public void add(BigInteger id, Object obj) {
+    // Only print out the first collision - other ones can be ignored
+    // if (mem.containsKey(id)){
+    //   System.out.printf("Key already inserted: %s detected at %s\n", id, CommonState.getTime());
+    //   // double total_ids = KademliaObserver.ids_requests.getN();
+    //   // System.out.printf("Collision Detected! ID Requests: %f", total_ids);
+    //   // End the simulation prematurely to save time
+    //   System.exit(0);
+    // } else {
+    //   add(id, obj, 0);
+    // }
+
     add(id, obj, 0);
   }
+
   /**
    * Add an object into the memory store
    *
-   * @param obj The object to store
+   * @param obj     The object to store
    * @param timeout The delay in ms
    */
   public void add(BigInteger id, Object obj, long timeout) {
@@ -103,7 +118,8 @@ public class KeyValueStore {
    * Delete an entry from the memory store
    *
    * @param key The key to delete
-   * @return The delete value result (true if the object has been found, false in other case)
+   * @return The delete value result (true if the object has been found, false in
+   *         other case)
    */
   public boolean delete(BigInteger key) {
     if (mem.containsKey(key)) {

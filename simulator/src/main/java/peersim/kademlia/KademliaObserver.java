@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.BitSet;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Control;
@@ -42,6 +43,8 @@ public class KademliaObserver implements Control {
   /** keep statistic of number of find operation */
   public static IncrementalStats find_op = new IncrementalStats();
 
+  public static IncrementalStats ids_requests = new IncrementalStats();
+
   /** Parameter of the protocol we want to observe */
   private static final String PAR_PROT = "protocol";
 
@@ -62,6 +65,10 @@ public class KademliaObserver implements Control {
 
   /** Name of the folder where experiment logs are written */
   private static String logFolderName;
+
+  public static BitSet bitSetIdentifiers = new BitSet(16);
+
+  public static BitSet bitSetIdentUpdated = new BitSet(16);
 
   /** The time granularity of reporting metrics */
   private static int observerStep;
@@ -124,15 +131,15 @@ public class KademliaObserver implements Control {
       directory.mkdir();
     }
     // Write messages log to file if not empty
-    if (!messages.isEmpty()) {
-      writeLogs(messages, logFolderName + "/" + "messages.csv");
-    }
-    if (!operations.isEmpty()) {
-      writeLogs(operations, logFolderName + "/" + "operation.csv");
-    }
-    if (!peerDiscoveries.isEmpty()) {
-      writeLogs(peerDiscoveries, logFolderName + "/" + "peerDiscoveries.csv");
-    }
+    // if (!messages.isEmpty()) {
+    //   writeLogs(messages, logFolderName + "/" + "messages.csv");
+    // }
+    // if (!operations.isEmpty()) {
+    //   writeLogs(operations, logFolderName + "/" + "operation.csv");
+    // }
+    // if (!peerDiscoveries.isEmpty()) {
+    //   writeLogs(peerDiscoveries, logFolderName + "/" + "peerDiscoveries.csv");
+    // }
   }
 
   /**
@@ -141,36 +148,40 @@ public class KademliaObserver implements Control {
    * @return always false
    */
   public boolean execute() {
+    // Update bitset every `T` seconds
+    bitSetIdentUpdated.or(bitSetIdentifiers);
+    // System.out.printf("TIMER bits set: %d\n", bitSetIdentUpdated.cardinality());
     // Get the real network size
-    int sz = Network.size();
-    for (int i = 0; i < Network.size(); i++) {
-      if (!Network.get(i).isUp()) {
-        sz--;
-      }
-    }
+    // int sz = Network.size();
+    // for (int i = 0; i < Network.size(); i++) {
+    //   if (!Network.get(i).isUp()) {
+    //     sz--;
+    //   }
+    // }
 
-    System.gc();
-    String s =
-        String.format(
-            "[time=%d]:[N=%d current nodes UP] [D=%f msg deliv] [%f min h] [%f average h] [%f max h] [%d min l] [%d msec average l] [%d max l] [%d find msg sent]",
-            CommonState.getTime(),
-            sz,
-            msg_deliv.getSum(),
-            hopStore.getMin(),
-            hopStore.getAverage(),
-            hopStore.getMax(),
-            (int) timeStore.getMin(),
-            (int) timeStore.getAverage(),
-            (int) timeStore.getMax(),
-            (int) find_op.getSum());
-
-    // Check if this is the last execution cycle of the experiment
-    if (CommonState.getEndTime() <= (observerStep + CommonState.getTime())) {
-      // Write out the logs to disk/permanent storage
-      writeOut();
-      // System.err.println(s);
-    }
-
+    
+    // System.gc();
+    // String s =
+    // String.format(
+    //   "[time=%d]:[N=%d current nodes UP] [D=%f msg deliv] [%f min h] [%f average h] [%f max h] [%d min l] [%d msec average l] [%d max l] [%d find msg sent]",
+    //   CommonState.getTime(),
+    //   sz,
+    //   msg_deliv.getSum(),
+    //   hopStore.getMin(),
+    //   hopStore.getAverage(),
+    //   hopStore.getMax(),
+    //   (int) timeStore.getMin(),
+    //   (int) timeStore.getAverage(),
+    //   (int) timeStore.getMax(),
+    //   (int) find_op.getSum());
+      
+    //   // Check if this is the last execution cycle of the experiment
+    //   if (CommonState.getEndTime() <= (observerStep + CommonState.getTime())) {
+    //     // Write out the logs to disk/permanent storage
+    //     writeOut();
+    //     // System.out.println(s);
+    //   }
+      
     return false;
   }
 

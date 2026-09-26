@@ -1,6 +1,9 @@
 package peersim.kademlia;
 
 import java.math.BigInteger;
+import java.util.BitSet;
+
+
 
 /** A Kademlia node, identified by its ID, IP address and port. */
 public class KademliaNode implements Comparable<KademliaNode> {
@@ -16,6 +19,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
 
   private boolean is_server;
   // private List<String> topicList;
+  private BitSet ident_bitset;
 
   /**
    * Creates a new Kademlia node with the given ID, address and port.
@@ -31,6 +35,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.port = port;
     this.is_evil = false;
     this.is_server = true;
+    this.ident_bitset = new BitSet(16);
   }
 
   /**
@@ -48,6 +53,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.port = port;
     this.is_evil = true;
     this.is_server = true;
+    this.ident_bitset = new BitSet(16);
   }
 
   /**
@@ -62,6 +68,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.attackerID = null;
     this.is_evil = false;
     this.is_server = true;
+    this.ident_bitset = new BitSet(16);
   }
 
   /**
@@ -76,6 +83,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.is_evil = n.is_evil;
     this.attackerID = n.attackerID;
     this.is_server = true;
+    this.ident_bitset = n.ident_bitset;
   }
 
   /**
@@ -85,6 +93,14 @@ public class KademliaNode implements Comparable<KademliaNode> {
    */
   public BigInteger getId() {
     return this.id;
+  }
+
+  public BitSet get_ident_bitset() {
+    return this.ident_bitset;
+  }
+
+  public void set_ident_bitset(BitSet new_bitset) {
+    this.ident_bitset = new_bitset;
   }
 
   /**

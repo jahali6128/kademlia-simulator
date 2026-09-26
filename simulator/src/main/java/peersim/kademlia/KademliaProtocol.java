@@ -16,6 +16,9 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.BitSet;
+
+import jnr.a64asm.SysRegDescription;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Network;
@@ -30,7 +33,8 @@ import peersim.kademlia.operations.RegionBasedFindOperation;
 import peersim.transport.UnreliableTransport;
 
 /**
- * KademliaProtocol is a class that builds ontop of the EDProtocol interface to implement the
+ * KademliaProtocol is a class that builds ontop of the EDProtocol interface to
+ * implement the
  * Kademlia protocol.
  *
  * @see Cloneable
@@ -88,7 +92,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   private KademliaEvents callback;
 
   /**
-   * Replicate this object by returning an identical copy. It is called by the initializer and do
+   * Replicate this object by returning an identical copy. It is called by the
+   * initializer and do
    * not fill any particular field.
    *
    * @return Object
@@ -99,7 +104,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   }
 
   /**
-   * Constructor for KademliaProtocol. It is only used by the initializer when creating the
+   * Constructor for KademliaProtocol. It is only used by the initializer when
+   * creating the
    * prototype. Every other instance calls CLONE to create a new object.
    *
    * @param prefix String: the prefix for configuration parameters
@@ -109,11 +115,10 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     KademliaProtocol.prefix = prefix;
     _init();
 
-    routingTable =
-        new RoutingTable(
-            KademliaCommonConfig.NBUCKETS,
-            KademliaCommonConfig.K,
-            KademliaCommonConfig.MAXREPLACEMENT);
+    routingTable = new RoutingTable(
+        KademliaCommonConfig.NBUCKETS,
+        KademliaCommonConfig.K,
+        KademliaCommonConfig.MAXREPLACEMENT);
 
     sentMsg = new TreeMap<Long, Long>();
 
@@ -127,29 +132,30 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   }
 
   /**
-   * This procedure is called only once and allows to initialize the internal state of
-   * KademliaProtocol. Every node shares the same configuration, so it is sufficient to call this
+   * This procedure is called only once and allows to initialize the internal
+   * state of
+   * KademliaProtocol. Every node shares the same configuration, so it is
+   * sufficient to call this
    * routine once.
    */
   private void _init() {
     // execute once
-    if (_ALREADY_INSTALLED) return;
+    if (_ALREADY_INSTALLED)
+      return;
 
     // read parameters
     KademliaCommonConfig.K = Configuration.getInt(prefix + "." + PAR_K, KademliaCommonConfig.K);
-    KademliaCommonConfig.ALPHA =
-        Configuration.getInt(prefix + "." + PAR_ALPHA, KademliaCommonConfig.ALPHA);
-    KademliaCommonConfig.BITS =
-        Configuration.getInt(prefix + "." + PAR_BITS, KademliaCommonConfig.BITS);
+    KademliaCommonConfig.ALPHA = Configuration.getInt(prefix + "." + PAR_ALPHA, KademliaCommonConfig.ALPHA);
+    KademliaCommonConfig.BITS = Configuration.getInt(prefix + "." + PAR_BITS, KademliaCommonConfig.BITS);
 
-    KademliaCommonConfig.FINDMODE =
-        Configuration.getInt(prefix + "." + PAR_FINDMODE, KademliaCommonConfig.FINDMODE);
+    KademliaCommonConfig.FINDMODE = Configuration.getInt(prefix + "." + PAR_FINDMODE, KademliaCommonConfig.FINDMODE);
 
     _ALREADY_INSTALLED = true;
   }
 
   /**
-   * Gets the node associated with this Kademlia protocol instance by calling nodeIdtoNode method
+   * Gets the node associated with this Kademlia protocol instance by calling
+   * nodeIdtoNode method
    * with the ID of this KademliaNod.
    *
    * @return the node associated with this Kademlia protocol instance,
@@ -159,13 +165,17 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   }
 
   /**
-   * Perform the required operation upon receiving a message in response to a ROUTE (FIND would be
-   * more appropriate here) message. Update the find operation record with the closest set of
-   * neighbors received. Then, send as many ROUTE requests as possible (according to the ALPHA
-   * parameter). If there are no closest neighbors available and no outstanding messages, stop the
+   * Perform the required operation upon receiving a message in response to a
+   * ROUTE (FIND would be
+   * more appropriate here) message. Update the find operation record with the
+   * closest set of
+   * neighbors received. Then, send as many ROUTE requests as possible (according
+   * to the ALPHA
+   * parameter). If there are no closest neighbors available and no outstanding
+   * messages, stop the
    * find operation.
    *
-   * @param m the message received.
+   * @param m     the message received.
    * @param myPid the sender PID.
    */
   private void handleResponse(Message m, int myPid) {
@@ -184,7 +194,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
       // Save received neighbour in the closest Set of find operation
       BigInteger[] neighbours = (BigInteger[]) m.body;
-      if (callback != null) callback.nodesFound(fop, neighbours);
+      if (callback != null)
+        callback.nodesFound(fop, neighbours);
       for (BigInteger neighbour : neighbours)
         if (Util.nodeIdtoNode(neighbour, myPid).getKademliaProtocol().getKademliaNode().isServer())
           routingTable.addNeighbour(neighbour);
@@ -251,8 +262,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
           request.operationId = m.operationId;
           request.src = this.getKademliaNode();
-          request.dst =
-              Util.nodeIdtoNode(neighbour, kademliaid).getKademliaProtocol().getKademliaNode();
+          request.dst = Util.nodeIdtoNode(neighbour, kademliaid).getKademliaProtocol().getKademliaNode();
 
           if (KademliaCommonConfig.FINDMODE == 0 || request.getType() == Message.MSG_GET) {
             request.body = fop.getDestNode();
@@ -267,8 +277,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
           // Send find request to neighbor
           sendMessage(request, neighbour, myPid);
 
-        } else if (fop.getAvailableRequests()
-            == KademliaCommonConfig.ALPHA) { // No new neighbor and no outstanding requests
+        } else if (fop.getAvailableRequests() == KademliaCommonConfig.ALPHA) { // No new neighbor and no outstanding
+                                                                               // requests
           // Search operation finished
           if (fop instanceof PutOperation) {
             // Create and send a put request to all neighbors in the neighbors list
@@ -277,8 +287,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
               Message request = new Message(Message.MSG_PUT);
               request.operationId = m.operationId;
               request.src = this.getKademliaNode();
-              request.dst =
-                  Util.nodeIdtoNode(id, kademliaid).getKademliaProtocol().getKademliaNode();
+              request.dst = Util.nodeIdtoNode(id, kademliaid).getKademliaProtocol().getKademliaNode();
               request.body = ((PutOperation) fop).getBody();
               request.value = ((PutOperation) fop).getValue();
 
@@ -289,6 +298,15 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
               // Todo: verify
               sendMessage(request, id, myPid);
             }
+            // JA - Get the values and typecast into string
+            Object identObject = ((PutOperation) fop).getValue();
+            String identString = identObject.toString();
+
+            // JA - Typecast into integer so we can set into the BitSet
+            int identIndex = Integer.parseInt(identString, 16);
+            // System.out.printf("identIndex: %d\n", identIndex);
+            KademliaObserver.bitSetIdentifiers.set(identIndex);
+
             logger.warning(
                 "PutOperation Sending PUT_VALUE to "
                     + fop.getNeighboursList().size()
@@ -346,7 +364,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   }
 
   /**
-   * Handles a put request received by the node Store the object in the key value store associated
+   * Handles a put request received by the node Store the object in the key value
+   * store associated
    * with teh node
    *
    * @param m The message containing the put request.
@@ -354,14 +373,16 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   private void handlePut(Message m) {
     logger.info("Handle put sample:" + m.body);
     kv.add((BigInteger) m.body, m.value);
-    if (callback != null) callback.putValueReceived(m.value);
+    if (callback != null)
+      callback.putValueReceived(m.value);
   }
 
   /**
-   * Handles the response to a route request by finding the ALPHA closest node consulting the
+   * Handles the response to a route request by finding the ALPHA closest node
+   * consulting the
    * k-buckets and returning them to the sender.
    *
-   * @param m Message object containing the request
+   * @param m     Message object containing the request
    * @param myPid the ID of the sender node
    */
   private void handleFind(Message m, int myPid) {
@@ -397,16 +418,18 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
       response.value = kv.get((BigInteger) m.body);
     }
 
-    // Send the response message containing the neighbours (and optional value) back to the sender
+    // Send the response message containing the neighbours (and optional value) back
+    // to the sender
     // node
     sendMessage(response, m.src.getId(), myPid);
   }
 
   /**
-   * This method starts a find node operation, which searches for the ALPHA closest nodes to the
+   * This method starts a find node operation, which searches for the ALPHA
+   * closest nodes to the
    * provided node ID and sends a find request to them.
    *
-   * @param m Message object containing the node ID to find
+   * @param m     Message object containing the node ID to find
    * @param myPid the ID of the sender node
    * @return a reference to the created operation object
    */
@@ -419,12 +442,12 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
     // Create find operation
     FindOperation fop;
-    // Determine the type of the received message and create a corresponding operation object
+    // Determine the type of the received message and create a corresponding
+    // operation object
     switch (m.type) {
       case Message.MSG_INIT_FIND_REGION_BASED:
-        fop =
-            new RegionBasedFindOperation(
-                this.node.getId(), (BigInteger) m.body, (int) m.value, m.timestamp);
+        fop = new RegionBasedFindOperation(
+            this.node.getId(), (BigInteger) m.body, (int) m.value, m.timestamp);
         break;
       case Message.MSG_INIT_FIND:
         fop = new FindOperation(this.node.getId(), (BigInteger) m.body, m.timestamp);
@@ -448,38 +471,62 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     // Add the operation object to the find operation hash map
     findOp.put(fop.getId(), fop);
 
-    // Retrieve the ALPHA closest nodes to the source node and add them to the find operation
-    BigInteger[] neighbours =
-        this.routingTable.getNeighbours((BigInteger) m.body, this.getKademliaNode().getId());
+    // Retrieve the ALPHA closest nodes to the source node and add them to the find
+    // operation
+    BigInteger[] neighbours = this.routingTable.getNeighbours((BigInteger) m.body, this.getKademliaNode().getId());
     fop.elaborateResponse(neighbours);
     fop.setAvailableRequests(KademliaCommonConfig.ALPHA);
 
     // Set the operation ID of the message
     m.operationId = fop.getId();
-
+    
     // Set the source of the message to the current node
     m.src = this.getKademliaNode();
-
+    BitSet src_bitset = m.src.get_ident_bitset();
+    
+    // JA - then check if the identifier is a member of the bitset, if not set it.
+    // JA - this is how we detect the collision
+    int identInt = Integer.parseInt((String) m.value, 16);
+    
+    if (src_bitset.get(identInt) == true) {
+      System.out.printf("Key already in_merged_Bitmap: %s detected at %s\n", (String) m.value, CommonState.getTime());
+      // Exit the simulation early
+      System.exit(0);
+    } else {
+      src_bitset.set(identInt);
+    }
+    
     // Send ALPHA messages to the closest nodes
     for (int i = 0; i < KademliaCommonConfig.ALPHA; i++) {
       BigInteger nextNode = fop.getNeighbour();
-
+      
       if (nextNode != null) {
         // Set the destination of the message to the next closest node
-        m.dst =
-            Util.nodeIdtoNode(nextNode, kademliaid)
-                .getKademliaProtocol()
-                .getKademliaNode(); // new KademliaNode(nextNode);
-
+        m.dst = Util.nodeIdtoNode(nextNode, kademliaid)
+        .getKademliaProtocol()
+        .getKademliaNode(); // new KademliaNode(nextNode);
+        
+        BitSet dst_bitset = m.dst.get_ident_bitset();
+        
+        // JA - "merge" the new bitsets together and set to both src and dst        
+        // JA - cannot be assigned to new variable so `src_bitset` has the changes
+        src_bitset.or(dst_bitset);
+        m.src.set_ident_bitset(src_bitset);
+        m.dst.set_ident_bitset(src_bitset);
+        // System.out.printf("src bitset: %s\n", src_bitset.toString());
+        
         // Set the type of the message depending on the find mode
-        if (m.type == Message.MSG_INIT_GET) m.type = Message.MSG_GET;
-        else if (KademliaCommonConfig.FINDMODE == 0) m.type = Message.MSG_FIND;
+        if (m.type == Message.MSG_INIT_GET)
+          m.type = Message.MSG_GET;
+        else if (KademliaCommonConfig.FINDMODE == 0)
+          m.type = Message.MSG_FIND;
         else {
           m.type = Message.MSG_FIND_DIST;
           m.body = Util.logDistance(nextNode, (BigInteger) fop.getBody());
         }
 
-        // Send the message to the next closest node and add it to the operation's message list
+        // Send the message to the next closest node and add it to the operation's
+        // message list
         logger.info("sendMessage to " + nextNode);
         Message mbis = m.copy();
         fop.addMessage(mbis.id);
@@ -496,12 +543,13 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   }
 
   /**
-   * Sends a message using the current transport layer and starts the timeout timer if the message
+   * Sends a message using the current transport layer and starts the timeout
+   * timer if the message
    * is a request.
    *
-   * @param m the message to send
+   * @param m      the message to send
    * @param destId the ID of the destination node
-   * @param myPid the sender process ID (Todo: verify what myPid stand for!!!)
+   * @param myPid  the sender process ID (Todo: verify what myPid stand for!!!)
    */
   private void sendMessage(Message m, BigInteger destId, int myPid) {
     // Add destination node to routing table
@@ -532,11 +580,11 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
       // Get the latency of the network between the source and destination nodes
       long latency = transport.getLatency(src, dest);
-
+      // System.out.printf("Latency is %d", latency);
       // Add the message to the sent messages map
       this.sentMsg.put(m.id, m.timestamp);
 
-      // Schedule the timeout timer with a delay equal to 4 times the network latency
+      // Schedule the timeout timer with a delay equal to 4 times the network latency/
       EDSimulator.add(4 * latency, t, src, myPid); // set delay = 4*RTT
     }
   }
@@ -545,11 +593,12 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
    * Handles the receiving of events by the peersim framework.
    *
    * @param myNode the current node receiving the event.
-   * @param myPid the process ID of the current node. (TODO: verify!!!)
-   * @param event the event being received by the current node.
+   * @param myPid  the process ID of the current node. (TODO: verify!!!)
+   * @param event  the event being received by the current node.
    */
   public void processEvent(Node myNode, int myPid, Object event) {
-    // Set the Kademlia ID as the current process ID - assuming Pid stands for process ID.
+    // Set the Kademlia ID as the current process ID - assuming Pid stands for
+    // process ID.
     this.kademliaid = myPid;
 
     Message m;
@@ -601,43 +650,50 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         // TODO: Implement handling for a store message.
         break;
 
-        /*case Timeout.TIMEOUT: // timeout
-        Timeout t = (Timeout) event;
-        if (sentMsg.containsKey(t.msgID)) { // the response msg isn't arrived
-          // remove form sentMsg
-          sentMsg.remove(t.msgID);
-          // remove node from my routing table
-          this.routingTable.removeNeighbour(t.node);
-          // remove from closestSet of find operation
-          this.findOp.get(t.opID).closestSet.remove(t.node);
-          // try another node
-          Message m1 = new Message();
-          m1.operationId = t.opID;
-          m1.src = getNode();
-          m1.dest = this.findOp.get(t.opID).destNode;
-          this.handleResponse(m1, myPid);
-        }
-        break;*/
+      /*
+       * case Timeout.TIMEOUT: // timeout
+       * Timeout t = (Timeout) event;
+       * if (sentMsg.containsKey(t.msgID)) { // the response msg isn't arrived
+       * // remove form sentMsg
+       * sentMsg.remove(t.msgID);
+       * // remove node from my routing table
+       * this.routingTable.removeNeighbour(t.node);
+       * // remove from closestSet of find operation
+       * this.findOp.get(t.opID).closestSet.remove(t.node);
+       * // try another node
+       * Message m1 = new Message();
+       * m1.operationId = t.opID;
+       * m1.src = getNode();
+       * m1.dest = this.findOp.get(t.opID).destNode;
+       * this.handleResponse(m1, myPid);
+       * }
+       * break;
+       */
     }
-    /*if (event instanceof Message) {
-    OpLogging fLog;
-
-    m = (Message) event;
-    if (this.findLog.get(m.operationId) == null) {
-      fLog = new OpLogging(m.operationId, this.node.getId(), CommonState.getTime(), m.getType());
-      findLog.put(m.operationId, fLog);
-    } else {
-      fLog = this.findLog.get(m.operationId);
-    }
-    /*Operation Logging */
-    /*fLog.AddMessage(m.id);
-      fLog.SetStop(CommonState.getTime());
-      findLog.put(m.operationId, fLog);
-    }
-
-    for (Map.Entry<Long, OpLogging> entry : findLog.entrySet()) {
-      KademliaObserver.reportFindOp(entry.getValue());
-    }*/
+    /*
+     * if (event instanceof Message) {
+     * OpLogging fLog;
+     * 
+     * m = (Message) event;
+     * if (this.findLog.get(m.operationId) == null) {
+     * fLog = new OpLogging(m.operationId, this.node.getId(), CommonState.getTime(),
+     * m.getType());
+     * findLog.put(m.operationId, fLog);
+     * } else {
+     * fLog = this.findLog.get(m.operationId);
+     * }
+     * /*Operation Logging
+     */
+    /*
+     * fLog.AddMessage(m.id);
+     * fLog.SetStop(CommonState.getTime());
+     * findLog.put(m.operationId, fLog);
+     * }
+     * 
+     * for (Map.Entry<Long, OpLogging> entry : findLog.entrySet()) {
+     * KademliaObserver.reportFindOp(entry.getValue());
+     * }
+     */
   }
 
   /**
@@ -698,7 +754,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
     // Create a console handler for the logger
     ConsoleHandler handler = new ConsoleHandler();
-    // Set the handler's formatter to a custom format that includes the time and logger name
+    // Set the handler's formatter to a custom format that includes the time and
+    // logger name
     handler.setFormatter(
         new SimpleFormatter() {
           private static final String format = "[%d][%s] %3$s %n";
