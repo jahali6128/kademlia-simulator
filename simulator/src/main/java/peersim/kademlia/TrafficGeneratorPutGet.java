@@ -28,10 +28,12 @@ public class TrafficGeneratorPutGet implements Control {
   // ______________________________________________________________________________________________
   /** MSPastry Protocol to act */
   private static final String PAR_PROT = "protocol";
-  private static final String PAR_RPS = "requests_per_second";
+  // private static final String PAR_RPS = "requests_per_second";
 
   /** MSPastry Protocol ID to act */
   private final int pid;
+
+  private static String identToSubmit;
 
   // ______________________________________________________________________________________________
   public TrafficGeneratorPutGet(String prefix) {
@@ -59,9 +61,16 @@ public class TrafficGeneratorPutGet implements Control {
     BigInteger id;
     String topic = GenerateRandIdentifier(2);
     String value = topic;
-    // Check the cache first, otherwise perform a standard lookup
-    // Ignore the cache here for this branch `Collision`
-    // checkCache(topic);
+    // JA - Check the cache first, otherwise perform a standard lookup
+    boolean isUnique = checkCache(topic);
+    while (isUnique == false) {
+      topic = GenerateRandIdentifier(2);
+      isUnique = checkCache(topic);
+    }
+
+    // System.out.printf("Identifier Submitted: %s\n", topic);
+    identToSubmit = topic;
+
     try {
       digest = MessageDigest.getInstance("SHA-256");
       byte[] hash = digest.digest(topic.getBytes(StandardCharsets.UTF_8));
@@ -86,7 +95,7 @@ public class TrafficGeneratorPutGet implements Control {
     MessageDigest digest;
     BigInteger id;
     try {
-      String topic = GenerateRandIdentifier(1);
+      String topic = GenerateRandIdentifier(2);
       // String topic = "t1";
       digest = MessageDigest.getInstance("SHA-256");
       byte[] hash = digest.digest(topic.getBytes(StandardCharsets.UTF_8));
@@ -100,16 +109,19 @@ public class TrafficGeneratorPutGet implements Control {
       return null;
     }
   }
+
   // JA - If it is in the cache, log collison and exit simulation.
   // JA - keep the logs in the same format to make measuring easier.
-  private void checkCache(String ident) {
+  // JA - this time, just check if unique and return a boolean
+  private boolean checkCache(String ident) {
+    // System.out.printf("Checking Identifier: %s\n", ident);
     int identInt = Integer.parseInt(ident, 16);
     if (KademliaObserver.bitSetIdentUpdated.get(identInt) == true) {
-      System.out.printf("Key already inBitmap: %s detected at %s\n", ident, CommonState.getTime());
-      // Exit the simulation early
-      System.exit(0);
+      // System.out.printf("Already in the cache: %s\n", ident);
+      return false;
+    } else {
+      return true;
     }
-
   }
 
   // ______________________________________________________________________________________________
@@ -122,19 +134,18 @@ public class TrafficGeneratorPutGet implements Control {
 
     Node start;
     do {
-      start = Network.get(CommonState.r.nextInt(Network.size()));
+      // start = Network.get(CommonState.r.nextInt(Network.size()));
+      start = Network.get(ThreadLocalRandom.current().nextInt(Network.size()));
     } while ((start == null) || (!start.isUp()));
 
-    // if (first) {
-    // EDSimulator.add(0, generatePutMessage(), start, pid);
-    // EDSimulator.add(0, generatePutMessage(), start, pid);
-    // first = false;
-    // } else {
-    // EDSimulator.add(0, generateGetMessage(), start, pid);
-    // }
-
     EDSimulator.add(0, generatePutMessage(), start, pid);
-    // System.out.printf("ACTUAL bits set: %d\n", KademliaObserver.bitSetIdentifiers.cardinality());
+    // System.out.printf("ACTUAL bits set: %d\n",
+    // System.out.printf("Bits set: %d at %s\n", KademliaObserver.bitSetIdentUpdated.cardinality(), CommonState.getTime());
+
+    // JA - Typecast into integer so we can set into the BitSet
+    int identIndex = Integer.parseInt(identToSubmit, 16);
+    // System.out.printf("identIndex: %d\n", identIndex);
+    KademliaObserver.bitSetIdentifiers.set(identIndex);
 
     return false;
   }

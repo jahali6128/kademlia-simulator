@@ -137,56 +137,67 @@ def plot_latency_ttc():
 def plot_cache():
     n = 100
     rps_range = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    timer_range = [1, 5, 7, 10, 20]
+    # timer_range = [1, 5, 7, 10, 20]
+    timer_range = [0.5, 1, 1.5, 2, 2.5, 3]
 
     CACHE_DIR_LOCAL = f"/home/jahali6128/kademlia-simulator/simulator/results/ID-{ID_LEN}/N-{n}/results-{n}-cache.csv"
     with open(CACHE_DIR_LOCAL, "r") as csv_file:
         data = list(csv.DictReader(csv_file))
 
     comb = product(timer_range, rps_range)
-    # print(list(comb)) 
+    # print(list(comb))
     # # Then add the results
     xPoints = rps_range
     yPoints = []
     for c in comb:
         rps = c[1]
         timer = c[0]
-        
+
         for d in data:
-            if (rps == int(d["rps"])) and (timer == int(d["timer"])):
+            if (rps == int(d["rps"])) and (timer == float(d["timer"])):
                 print("rps:", d["rps"], "timer:", d["timer"], "result:", d["result"])
-                yPoints.append(float(d["result"])/1000)
-        
+                yPoints.append(float(d["result"]) / 1000)
+
         if rps == 100:
             print("xPoints:", xPoints)
             print("yPoints:", yPoints)
             plt.plot(xPoints, yPoints, label=f"timer-{timer}")
             yPoints = []
-    
-    plt.title(f"Cache Timer vs TTC, N-{NETWORK_SIZE}") 
+
+    plt.title(f"Cache Timer vs TTC, N-{NETWORK_SIZE}")
     plt.xlabel("RPS")
-    plt.ylabel("TTC (s)") 
+    plt.ylabel("TTC (s)")
     plt.legend()
     plt.show()
-        # print(yPoints)
+    # print(yPoints)
 
-        
     # print("xPoints: ", xPoints, "yPoints:", yPoints)
     # plt.plot(xPoints, yPoints)
     # plt.xlabel("RPS")
     # plt.ylabel("TTC")
     # plt.close()
-   
-    # plt.legend() 
+
+    # plt.legend()
     # plt.show()
-        
-    # print("results:", results)    
-    
+
+    # print("results:", results)
+
 
 if __name__ == "__main__":
+    x_points = [0.5, 1, 1.5, 2, 2.5, 3]
+    y_points = [26709.4, 16141.6, 10420.0, 8232.0, 6976.6, 6603] # 100 RPS
+
+    y_points_1 = [30647, 19842.4, 12954.72, 9741.18, 8148.3, 7343.84] # 90 RPS
+    y_points_2 = [41199.6, 22725.68, 13772.88, 10590.64, 9343.52, 8349.04] # 80 RPS
+    # y_points_2 = [88368.4, 50068.4, 29983.2, 26552.8, 23944.8, 18841.2] # 50 RPS
+
+    plt.plot(x_points, y_points, linestyle="dashdot", marker="o")
+    plt.plot(x_points, y_points_1, linestyle="dashdot", marker="o")
+    plt.plot(x_points, y_points_2, linestyle="dashdot", marker="o")
+    plt.show()
     # plot_network_coll()
     # plot_latency_ttc()
-    plot_cache()
+    # plot_cache()
     # plot_all_latency()
     # plot_all_alpha()
     # plot_latency()

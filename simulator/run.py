@@ -11,11 +11,12 @@ rps_range = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 
 alpha_range = [1, 2, 3, 4, 5, 10]
 latency_range = [1, 5, 10, 100, 250, 500]
-timer_range = [1, 3, 5, 7, 10, 20]
+# timer_range = [1, 3, 5, 7, 10, 20]
+timer_range = [0.5, 1, 1.5, 2, 2.5, 3]
 
 ID_LEN = 2
-NETWORK_SIZE = 1000
-SIM_RUNS = 30
+NETWORK_SIZE = 100
+SIM_RUNS = 50
 
 
 def edit_properties_file(rps, latency=1, alpha=3, timer=0):
@@ -96,7 +97,7 @@ def run_single_experiment_latency(rps, latency):
 
 def run_single_experiment_cache(rps, timer):
     # Need to convert to milliseconds
-    edit_properties_file(rps=rps, timer=timer*1000, latency=100)
+    edit_properties_file(rps=rps, timer=timer * 1000, latency=100)
     rps_result = []
     for _ in range(SIM_RUNS):
         check_output = subprocess.run(
@@ -208,9 +209,10 @@ def rps_network_id_requests(rps):
 
 if __name__ == "__main__":
     # print(run_single_experiment_latency(rps=20, latency=1))
-    # for i in rps_range:
-        # print(run_single_experiment_cache(rps=i, timer=10))
-    run_all_rps_experiments_cache()
+    test_timer_range = [0.5, 1, 1.5, 2, 2.5, 3]
+    # for i in test_timer_range:
+    print(run_single_experiment_cache(rps=80, timer=1.5))
+    # run_all_rps_experiments_cache()
     # run_all_rps_experiments_latency()
     # run_all_rps_experiments_alpha()
 

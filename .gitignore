@@ -4,3 +4,6 @@ logs/
 .vscode/
 *.code-workspace
 simulator/results
+
+# Python
+simulator/venv
