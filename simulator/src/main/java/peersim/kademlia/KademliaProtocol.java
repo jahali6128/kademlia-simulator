@@ -311,6 +311,10 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
                     + fop.getNeighboursList().size()
                     + " "
                     + fop.getId());
+            
+            double time_interval = CommonState.getTime() - fop.getTimestamp(); 
+            KademliaObserver.time_to_converge.add(time_interval);
+
           } else if (fop instanceof GetOperation) {
             // Remove the find operation record
             findOp.remove(fop.getId());

@@ -188,12 +188,26 @@ if __name__ == "__main__":
     y_points = [26709.4, 16141.6, 10420.0, 8232.0, 6976.6, 6603] # 100 RPS
 
     y_points_1 = [30647, 19842.4, 12954.72, 9741.18, 8148.3, 7343.84] # 90 RPS
-    y_points_2 = [41199.6, 22725.68, 13772.88, 10590.64, 9343.52, 8349.04] # 80 RPS
+    y_points_2 = [40308.96, 22725.68, 13772.88, 10590.64, 9343.52, 8349.04] # 80 RPS
     # y_points_2 = [88368.4, 50068.4, 29983.2, 26552.8, 23944.8, 18841.2] # 50 RPS
 
-    plt.plot(x_points, y_points, linestyle="dashdot", marker="o")
-    plt.plot(x_points, y_points_1, linestyle="dashdot", marker="o")
-    plt.plot(x_points, y_points_2, linestyle="dashdot", marker="o")
+
+    plt.plot(x_points, [y/1000 for y in y_points], linestyle="dashdot", label="100 RPS",  marker="o")
+    plt.plot(x_points, [y/1000 for y in y_points_1], linestyle="dashdot", label="90 RPS", marker="o")
+    plt.plot(x_points, [y/1000 for y in y_points_2], linestyle="dashdot", label="80 RPS", marker="o")
+    # horizontal lines
+    # 100 RPS
+    no_cache_100 =  4378.0 / 1000
+    no_cache_90 = 4923.36 / 1000
+    no_cache_80 = 5580.32 / 1000
+    plt.axhline(y=no_cache_100, linestyle="dashed", label="100 RPS (No Cache)")
+    plt.axhline(y=no_cache_90, linestyle="dashed", label="90 RPS (No Cache)", color="tab:orange")
+    plt.axhline(y=no_cache_80, linestyle="dashed", label="80 RPS (No Cache)", color="tab:green")
+
+    plt.title("Cache Timer vs TTC (100 nodes)")
+    plt.xlabel("Cache Timer (s)")
+    plt.ylabel("TTC (s)")
+    plt.legend()
     plt.show()
     # plot_network_coll()
     # plot_latency_ttc()

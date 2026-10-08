@@ -45,6 +45,8 @@ public class KademliaObserver implements Control {
 
   public static IncrementalStats ids_requests = new IncrementalStats();
 
+  public static IncrementalStats time_to_converge = new IncrementalStats();
+
   /** Parameter of the protocol we want to observe */
   private static final String PAR_PROT = "protocol";
 

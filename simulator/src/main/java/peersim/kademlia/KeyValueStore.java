@@ -64,6 +64,7 @@ public class KeyValueStore {
       // double total_ids = KademliaObserver.ids_requests.getN();
       // System.out.printf("Collision Detected! ID Requests: %f", total_ids);
       // End the simulation prematurely to save time
+      System.out.printf("Average time to converge: %s ms\n", KademliaObserver.time_to_converge.getAverage());
       System.exit(0);
     } else {
       add(id, obj, 0);

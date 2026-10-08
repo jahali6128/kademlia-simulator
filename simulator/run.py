@@ -211,7 +211,7 @@ if __name__ == "__main__":
     # print(run_single_experiment_latency(rps=20, latency=1))
     test_timer_range = [0.5, 1, 1.5, 2, 2.5, 3]
     # for i in test_timer_range:
-    print(run_single_experiment_cache(rps=80, timer=1.5))
+    print(run_single_experiment_cache(rps=80, timer=0.5))
     # run_all_rps_experiments_cache()
     # run_all_rps_experiments_latency()
     # run_all_rps_experiments_alpha()
