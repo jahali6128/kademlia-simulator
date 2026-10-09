@@ -12,7 +12,10 @@ import peersim.core.Node;
 import peersim.edsim.EDSimulator;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.BitSet;
 import java.util.HexFormat;
+
+import peersim.kademlia.KademliaNode;
 
 /**
  * This control generates random search traffic from nodes to random destination
@@ -54,7 +57,7 @@ public class TrafficGeneratorPutGet implements Control {
    *
    * @return Message
    */
-  private Message generatePutMessage() {
+  private Message generatePutMessage(KademliaNode kNode) {
 
     // Existing active destination node
     MessageDigest digest;
@@ -62,10 +65,16 @@ public class TrafficGeneratorPutGet implements Control {
     String topic = GenerateRandIdentifier(2);
     String value = topic;
     // JA - Check the cache first, otherwise perform a standard lookup
-    boolean isUnique = checkCache(topic);
+    // boolean isUnique = checkCache(topic);
+    // while (isUnique == false) {
+    // topic = GenerateRandIdentifier(2);
+    // isUnique = checkCache(topic);
+    // }
+
+    boolean isUnique = checkNodeCache(kNode, topic);
     while (isUnique == false) {
       topic = GenerateRandIdentifier(2);
-      isUnique = checkCache(topic);
+      isUnique = checkNodeCache(kNode, topic);
     }
 
     // System.out.printf("Identifier Submitted: %s\n", topic);
@@ -110,6 +119,18 @@ public class TrafficGeneratorPutGet implements Control {
     }
   }
 
+  private boolean checkNodeCache(KademliaNode kNode, String ident) {
+    int identInt = Integer.parseInt(ident, 16);
+    BitSet nodeCache = kNode.get_ident_bitset();
+
+    if (nodeCache.get(identInt) == true) {
+      // System.out.printf("Already in internal cache: %s\n", ident);
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   // JA - If it is in the cache, log collison and exit simulation.
   // JA - keep the logs in the same format to make measuring easier.
   // JA - this time, just check if unique and return a boolean
@@ -138,14 +159,19 @@ public class TrafficGeneratorPutGet implements Control {
       start = Network.get(ThreadLocalRandom.current().nextInt(Network.size()));
     } while ((start == null) || (!start.isUp()));
 
-    EDSimulator.add(0, generatePutMessage(), start, pid);
+    KademliaNode startKademliaNode = start.getKademliaProtocol().getKademliaNode();
+    // System.out.printf("Kademlia Node Bitsets: %s\n",
+    // startKademliaNode.get_ident_bitset().cardinality());
+
+    EDSimulator.add(0, generatePutMessage(startKademliaNode), start, pid);
     // System.out.printf("ACTUAL bits set: %d\n",
-    // System.out.printf("Bits set: %d at %s\n", KademliaObserver.bitSetIdentUpdated.cardinality(), CommonState.getTime());
+    // System.out.printf("Bits set: %d at %s\n",
+    // KademliaObserver.bitSetIdentUpdated.cardinality(), CommonState.getTime());
 
     // JA - Typecast into integer so we can set into the BitSet
-    int identIndex = Integer.parseInt(identToSubmit, 16);
+    // int identIndex = Integer.parseInt(identToSubmit, 16);
     // System.out.printf("identIndex: %d\n", identIndex);
-    KademliaObserver.bitSetIdentifiers.set(identIndex);
+    // KademliaObserver.bitSetIdentifiers.set(identIndex);
 
     return false;
   }

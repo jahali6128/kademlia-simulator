@@ -72,6 +72,8 @@ public class KademliaObserver implements Control {
 
   public static BitSet bitSetIdentUpdated = new BitSet(16);
 
+  public static BitSet bitSetGossip = new BitSet(16);
+
   /** The time granularity of reporting metrics */
   private static int observerStep;
 

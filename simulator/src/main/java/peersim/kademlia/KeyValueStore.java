@@ -60,7 +60,7 @@ public class KeyValueStore {
   public void add(BigInteger id, Object obj) {
     // Only print out the first collision - other ones can be ignored
     if (mem.containsKey(id)) {
-      System.out.printf("Key already inserted: %s detected at %s\n", id, CommonState.getTime());
+      System.out.printf("Key already inserted: %s detected at %s\n", obj.toString(), CommonState.getTime());
       // double total_ids = KademliaObserver.ids_requests.getN();
       // System.out.printf("Collision Detected! ID Requests: %f", total_ids);
       // End the simulation prematurely to save time

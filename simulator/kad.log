@@ -3,4 +3,5 @@
 
 Building state
 Logfolder: ./logs
-Key already inserted: 101583130573657437709544693644356511396045080674644167596162741563458834148538 detected at 4596
+Key already inserted: 6425 detected at 38352
+Average time to converge: 2006.4686468646864 ms

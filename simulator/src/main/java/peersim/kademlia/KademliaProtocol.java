@@ -263,6 +263,9 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
           request.src = this.getKademliaNode();
           request.dst = Util.nodeIdtoNode(neighbour, kademliaid).getKademliaProtocol().getKademliaNode();
 
+          // Set the bitsets for both src and dst
+
+
           if (KademliaCommonConfig.FINDMODE == 0 || request.getType() == Message.MSG_GET) {
             request.body = fop.getDestNode();
           } else {
@@ -374,6 +377,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
    * @param m The message containing the put request.
    */
   private void handlePut(Message m) {
+    // System.out.printf("STORING %s:%s\n", m.body, m.value);
     logger.info("Handle put sample:" + m.body);
     kv.add((BigInteger) m.body, m.value);
     if (callback != null)
@@ -485,19 +489,23 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     
     // Set the source of the message to the current node
     m.src = this.getKademliaNode();
-    // BitSet src_bitset = m.src.get_ident_bitset();
+    BitSet src_bitset = m.src.get_ident_bitset();
     
     // JA - then check if the identifier is a member of the bitset, if not set it.
     // JA - this is how we detect the collision
-    // int identInt = Integer.parseInt((String) m.value, 16);
-    
-    // if (src_bitset.get(identInt) == true) {
-    //   System.out.printf("Key already in_merged_Bitmap: %s detected at %s\n", (String) m.value, CommonState.getTime());
+    int identInt = Integer.parseInt((String) m.value, 16);
+  
+    if (src_bitset.get(identInt) != true) {
+      // System.out.printf("Key already in_merged_Bitmap: %s detected at %s\n", (String) m.value, CommonState.getTime());
+      // System.out.printf("Setting bitset %s at %s\n", identInt, CommonState.getTime());
+      src_bitset.set(identInt);
+      // System.exit(0);
+      // JA - finish the operation prematurely 
+      // fop.setFinished(true); 
+      // findOp.remove(fop.getId());
+      // return fop;
     //   // Exit the simulation early
-    //   System.exit(0);
-    // } else {
-    //   src_bitset.set(identInt);
-    // }
+    } 
     
     // Send ALPHA messages to the closest nodes
     for (int i = 0; i < KademliaCommonConfig.ALPHA; i++) {
@@ -509,13 +517,13 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         .getKademliaProtocol()
         .getKademliaNode(); // new KademliaNode(nextNode);
         
-        // BitSet dst_bitset = m.dst.get_ident_bitset();
+        BitSet dst_bitset = m.dst.get_ident_bitset();
         
         // JA - "merge" the new bitsets together and set to both src and dst        
         // JA - cannot be assigned to new variable so `src_bitset` has the changes
-        // src_bitset.or(dst_bitset);
-        // m.src.set_ident_bitset(src_bitset);
-        // m.dst.set_ident_bitset(src_bitset);
+        src_bitset.or(dst_bitset);
+        m.src.set_ident_bitset(src_bitset);
+        m.dst.set_ident_bitset(src_bitset);
         // System.out.printf("src bitset: %s\n", src_bitset.toString());
         
         // Set the type of the message depending on the find mode

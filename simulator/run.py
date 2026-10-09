@@ -19,7 +19,7 @@ NETWORK_SIZE = 100
 SIM_RUNS = 50
 
 
-def edit_properties_file(rps, latency=1, alpha=3, timer=0):
+def edit_properties_file(rps, latency=1, alpha=3, timer=1):
     p = Properties()
     with open(
         "/home/jahali6128/kademlia-simulator/simulator/config/kademlia_putget.cfg",
@@ -37,7 +37,7 @@ def edit_properties_file(rps, latency=1, alpha=3, timer=0):
 
 
 def run_single_experiment_alpha(rps, alpha):
-    edit_properties_file(rps=rps, alpha=alpha)
+    edit_properties_file(rps=rps, alpha=alpha, latency=100)
     rps_result = []
     for _ in range(SIM_RUNS):
         check_output = subprocess.run(
@@ -53,7 +53,7 @@ def run_single_experiment_alpha(rps, alpha):
 
     get_average = sum(rps_result) / len(rps_result)
     # all_results.append(get_average)
-    print(f"Finished Experiment RPS: {rps} with alpha {alpha} on N {NETWORK_SIZE}")
+    print(f"Finished Experiment RPS: {rps} with alpha {alpha} on N {NETWORK_SIZE} - {get_average}")
     result = {"rps": rps, "alpha": alpha, "result": get_average}
     return result
 
@@ -211,9 +211,12 @@ if __name__ == "__main__":
     # print(run_single_experiment_latency(rps=20, latency=1))
     test_timer_range = [0.5, 1, 1.5, 2, 2.5, 3]
     # for i in test_timer_range:
-    print(run_single_experiment_cache(rps=80, timer=0.5))
+    # print(run_single_experiment_cache(rps=80, timer=0.5))
     # run_all_rps_experiments_cache()
     # run_all_rps_experiments_latency()
     # run_all_rps_experiments_alpha()
+    alpha = [1,2,3,4,5,10]
+    # for a in alpha:
+    print(run_single_experiment_alpha(rps=80, alpha=2))
 
     # print(rps_network_id_requests(rps=10))
