@@ -159,9 +159,11 @@ public class TrafficGeneratorPutGet implements Control {
       start = Network.get(ThreadLocalRandom.current().nextInt(Network.size()));
     } while ((start == null) || (!start.isUp()));
 
+    System.out.printf("Identifier:%s\n", identToSubmit);
+
     KademliaNode startKademliaNode = start.getKademliaProtocol().getKademliaNode();
-    // System.out.printf("Kademlia Node Bitsets: %s\n",
-    // startKademliaNode.get_ident_bitset().cardinality());
+    // System.out.printf("Kademlia Node Bitsets: %s at %s\n",
+    // startKademliaNode.get_ident_bitset().cardinality(), CommonState.getTime());
 
     EDSimulator.add(0, generatePutMessage(startKademliaNode), start, pid);
     // System.out.printf("ACTUAL bits set: %d\n",
@@ -169,9 +171,10 @@ public class TrafficGeneratorPutGet implements Control {
     // KademliaObserver.bitSetIdentUpdated.cardinality(), CommonState.getTime());
 
     // JA - Typecast into integer so we can set into the BitSet
-    // int identIndex = Integer.parseInt(identToSubmit, 16);
+    int identIndex = Integer.parseInt(identToSubmit, 16);
     // System.out.printf("identIndex: %d\n", identIndex);
-    // KademliaObserver.bitSetIdentifiers.set(identIndex);
+    KademliaObserver.bitSetIdentifiers.set(identIndex);
+    // System.out.printf("Global Identifiers Set: %d at %s\n\n", KademliaObserver.bitSetIdentifiers.cardinality(), CommonState.getTime());
 
     return false;
   }

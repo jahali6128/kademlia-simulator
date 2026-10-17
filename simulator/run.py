@@ -1,4 +1,5 @@
 import csv
+from collections import defaultdict
 import subprocess
 from itertools import product
 
@@ -53,7 +54,9 @@ def run_single_experiment_alpha(rps, alpha):
 
     get_average = sum(rps_result) / len(rps_result)
     # all_results.append(get_average)
-    print(f"Finished Experiment RPS: {rps} with alpha {alpha} on N {NETWORK_SIZE} - {get_average}")
+    print(
+        f"Finished Experiment RPS: {rps} with alpha {alpha} on N {NETWORK_SIZE} - {get_average}"
+    )
     result = {"rps": rps, "alpha": alpha, "result": get_average}
     return result
 
@@ -207,6 +210,60 @@ def rps_network_id_requests(rps):
     return result
 
 
+def run_cache_bits_set():
+    global_table = {}
+    # local_table = {}
+    local_table = defaultdict(list)
+
+    # check_output_global = subprocess.run(
+    #     "cat kad.log | grep 'Global'",
+    #     shell=True,
+    #     check=True,
+    #     capture_output=True,
+    #     text=True
+    # )
+    # all_outputs_global = check_output_global.stdout.split("\n")
+    # # print(all_outputs_global)
+    # for out in all_outputs_global:
+    #     if out == "":
+    #         continue
+    #     # print(out)
+    #     time = out.split()[5]
+    #     bits_set = out.split()[3]
+    #     # print(f"Bits Set: {bits_set} at Time: {time}")
+    #     global_table[time] = bits_set
+
+    for _ in range(10):
+        check_output = subprocess.run(
+            "./run.sh config/kademlia_putget.cfg > kad.log",
+            shell=True,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        check_output_local = subprocess.run(
+            "cat kad.log | grep 'Kademlia'",
+            shell=True,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        all_outputs_local = check_output_local.stdout.split("\n")
+        # print(all_outputs_global)
+        for out in all_outputs_local:
+            if out == "":
+                continue
+            # print(out)
+            time = out.split()[5]
+            bits_set = out.split()[3]
+            # print(f"Bits Set: {bits_set} at Time: {time}")
+            local_table[time].append(bits_set)
+
+    # print(f"global table: {global_table}")
+    print(f"Local Table: {local_table}")
+
+
 if __name__ == "__main__":
     # print(run_single_experiment_latency(rps=20, latency=1))
     test_timer_range = [0.5, 1, 1.5, 2, 2.5, 3]
@@ -215,8 +272,9 @@ if __name__ == "__main__":
     # run_all_rps_experiments_cache()
     # run_all_rps_experiments_latency()
     # run_all_rps_experiments_alpha()
-    alpha = [1,2,3,4,5,10]
+    alpha = [1, 2, 3, 4, 5, 10]
     # for a in alpha:
-    print(run_single_experiment_alpha(rps=80, alpha=2))
+    # print(run_single_experiment_alpha(rps=80, alpha=2))
+    run_cache_bits_set()
 
     # print(rps_network_id_requests(rps=10))

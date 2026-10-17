@@ -1,9 +1,11 @@
 import csv
+
+# from collections import defaultdict
 from itertools import product
-from collections import defaultdict
 
 import matplotlib.pyplot as plt
-import numpy as np
+
+# import numpy as np
 
 xPoints = [1, 2, 3, 4, 5, 10, 20]
 
@@ -45,7 +47,7 @@ def plot_all_latency():
 
 
 def plot_alpha(alpha_dir=ALPHA_DIR):
-    rps = [10,20,30,40,50,60,70,80,90,100]
+    rps = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     for a in ALPHA:
         yPoints = []
         with open(alpha_dir, "r") as csv_file:
@@ -56,7 +58,6 @@ def plot_alpha(alpha_dir=ALPHA_DIR):
         plt.plot(rps, yPoints, label=f"alpha={a}", linestyle="dashed")
     # plt.legend()
     # plt.show()
-
 
 
 def plot_all_alpha():
@@ -187,39 +188,84 @@ def plot_cache():
     # print("results:", results)
 
 
+def cache_timer_vs_ttc():
+    x_points = [0.5, 1, 1.5, 2, 2.5, 3]
+    y_points = [26709.4, 16141.6, 10420.0, 8232.0, 6976.6, 6603]  # 100 RPS
+
+    y_points_1 = [30647, 19842.4, 12954.72, 9741.18, 8148.3, 7343.84]  # 90 RPS
+    y_points_2 = [40308.96, 22725.68, 13772.88, 10590.64, 9343.52, 8349.04]  # 80 RPS
+    # y_points_2 = [88368.4, 50068.4, 29983.2, 26552.8, 23944.8, 18841.2] # 50 RPS
+
+    plt.plot(
+        x_points,
+        [y / 1000 for y in y_points],
+        linestyle="dashdot",
+        label="100 RPS",
+        marker="o",
+    )
+    plt.plot(
+        x_points,
+        [y / 1000 for y in y_points_1],
+        linestyle="dashdot",
+        label="90 RPS",
+        marker="o",
+    )
+    plt.plot(
+        x_points,
+        [y / 1000 for y in y_points_2],
+        linestyle="dashdot",
+        label="80 RPS",
+        marker="o",
+    )
+    # horizontal lines
+    # 100 RPS
+    no_cache_100 = 4378.0 / 1000
+    no_cache_90 = 4923.36 / 1000
+    no_cache_80 = 5580.32 / 1000
+    plt.axhline(y=no_cache_100, linestyle="dashed", label="100 RPS (No Cache)")
+    plt.axhline(
+        y=no_cache_90, linestyle="dashed", label="90 RPS (No Cache)", color="tab:orange"
+    )
+    plt.axhline(
+        y=no_cache_80, linestyle="dashed", label="80 RPS (No Cache)", color="tab:green"
+    )
+
+    plt.title("Cache Timer vs TTC (100 nodes)")
+    plt.xlabel("Cache Timer (s)")
+    plt.ylabel("TTC (s)")
+    plt.legend()
+    plt.show()
+
+
+def plot_gossip():
+    # Alpha
+    x_points = [1, 2, 3, 4, 5, 10, 20]
+    y_points_1 = [16983.41667, 22113.4, 24839, 26006.5, 27183.08333, 27143.25, 25727.6]
+    y_points_2 = [16982.4, 23640.63, 26841.84, 28764.49, 28981.94, 28888.31, 28696.85]
+    y_points_3 = [20554.08, 24974.64, 28505.6, 31284.72, 31585.44, 32524.68, 32106.6]
+
+    plt.plot(x_points, [y / 1000 for y in y_points_1], label="100 RPS", marker="o")
+    plt.plot(x_points, [y / 1000 for y in y_points_2], label="90 RPS", marker="o")
+    plt.plot(x_points, [y / 1000 for y in y_points_3], label="80 RPS", marker="o")
+
+    plt.title("Cache vs TTC (Gossip Protocol) 100 Nodes")
+    plt.xlabel("Alpha (Concurrency Factor)")
+    plt.ylabel("TTC (s)")
+    plt.xticks(range(1, 22, 3))
+    plt.legend()
+    plt.show()
+
+
 if __name__ == "__main__":
-    # x_points = [0.5, 1, 1.5, 2, 2.5, 3]
-    # y_points = [26709.4, 16141.6, 10420.0, 8232.0, 6976.6, 6603] # 100 RPS
-
-    # y_points_1 = [30647, 19842.4, 12954.72, 9741.18, 8148.3, 7343.84] # 90 RPS
-    # y_points_2 = [40308.96, 22725.68, 13772.88, 10590.64, 9343.52, 8349.04] # 80 RPS
-    # # y_points_2 = [88368.4, 50068.4, 29983.2, 26552.8, 23944.8, 18841.2] # 50 RPS
-
-
-    # plt.plot(x_points, [y/1000 for y in y_points], linestyle="dashdot", label="100 RPS",  marker="o")
-    # plt.plot(x_points, [y/1000 for y in y_points_1], linestyle="dashdot", label="90 RPS", marker="o")
-    # plt.plot(x_points, [y/1000 for y in y_points_2], linestyle="dashdot", label="80 RPS", marker="o")
-    # # horizontal lines
-    # # 100 RPS
-    # no_cache_100 =  4378.0 / 1000
-    # no_cache_90 = 4923.36 / 1000
-    # no_cache_80 = 5580.32 / 1000
-    # plt.axhline(y=no_cache_100, linestyle="dashed", label="100 RPS (No Cache)")
-    # plt.axhline(y=no_cache_90, linestyle="dashed", label="90 RPS (No Cache)", color="tab:orange")
-    # plt.axhline(y=no_cache_80, linestyle="dashed", label="80 RPS (No Cache)", color="tab:green")
-
-    # plt.title("Cache Timer vs TTC (100 nodes)")
-    # plt.xlabel("Cache Timer (s)")
-    # plt.ylabel("TTC (s)")
-    # plt.legend()
-    # plt.show()
+    # cache_timer_vs_ttc()
+    plot_gossip()
     # plot_network_coll()
     # plot_latency_ttc()
     # plot_cache()
     # plot_all_latency()
     # plot_all_alpha()
     # plot_latency()
-    plot_alpha()
+    # plot_alpha()
 
     # plt.title(f"Alpha vs. Collision Time on Network Size: {NETWORK_SIZE}")
     # plt.xlabel("RPS")
