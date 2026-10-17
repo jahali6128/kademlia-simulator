@@ -15,7 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.BitSet;
 import java.util.HexFormat;
 
-import peersim.kademlia.KademliaNode;
+// import peersim.kademlia.KademliaNode;
 
 /**
  * This control generates random search traffic from nodes to random destination

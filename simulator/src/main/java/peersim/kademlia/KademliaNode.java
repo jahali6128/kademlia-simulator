@@ -20,6 +20,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
   private boolean is_server;
   // private List<String> topicList;
   private BitSet ident_bitset;
+  private BitSet metadata_bitset;
 
   /**
    * Creates a new Kademlia node with the given ID, address and port.
@@ -36,6 +37,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.is_evil = false;
     this.is_server = true;
     this.ident_bitset = new BitSet(16);
+    this.metadata_bitset = new BitSet(256);
   }
 
   /**
@@ -54,6 +56,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.is_evil = true;
     this.is_server = true;
     this.ident_bitset = new BitSet(16);
+    this.metadata_bitset = new BitSet(256);
   }
 
   /**
@@ -69,6 +72,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.is_evil = false;
     this.is_server = true;
     this.ident_bitset = new BitSet(16);
+    this.metadata_bitset = new BitSet(256);
   }
 
   /**
@@ -84,6 +88,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.attackerID = n.attackerID;
     this.is_server = true;
     this.ident_bitset = n.ident_bitset;
+    this.metadata_bitset = n.metadata_bitset;
   }
 
   /**
@@ -99,8 +104,16 @@ public class KademliaNode implements Comparable<KademliaNode> {
     return this.ident_bitset;
   }
 
+  public BitSet get_metadata_bitset() {
+    return this.metadata_bitset;
+  }
+
   public void set_ident_bitset(BitSet new_bitset) {
     this.ident_bitset = new_bitset;
+  }
+
+  public void set_metadata_bitset(BitSet new_metadata_bitset) {
+    this.metadata_bitset = new_metadata_bitset;
   }
 
   /**

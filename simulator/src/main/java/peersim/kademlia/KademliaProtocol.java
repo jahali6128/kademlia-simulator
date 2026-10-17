@@ -489,12 +489,14 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     
     // Set the source of the message to the current node
     m.src = this.getKademliaNode();
-    BitSet src_bitset = m.src.get_ident_bitset();
     
     // JA - then check if the identifier is a member of the bitset, if not set it.
     // JA - this is how we detect the collision
+    BitSet src_bitset = m.src.get_ident_bitset();
     int identInt = Integer.parseInt((String) m.value, 16);
-  
+    
+    BitSet src_metadata_bitset = m.src.get_metadata_bitset();
+
     if (src_bitset.get(identInt) != true) {
       // System.out.printf("Key already in_merged_Bitmap: %s detected at %s\n", (String) m.value, CommonState.getTime());
       // System.out.printf("Setting bitset %s at %s\n", identInt, CommonState.getTime());
@@ -518,14 +520,24 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         .getKademliaNode(); // new KademliaNode(nextNode);
         
         BitSet dst_bitset = m.dst.get_ident_bitset();
+        BitSet dst_metadata_bitset = m.dst.get_metadata_bitset();
         
+        // JA - We need to compare bitsets and check for duplicates, else merge
+        
+
+
+
         // JA - "merge" the new bitsets together and set to both src and dst        
         // JA - cannot be assigned to new variable so `src_bitset` has the changes
         src_bitset.or(dst_bitset);
         m.src.set_ident_bitset(src_bitset);
         m.dst.set_ident_bitset(src_bitset);
-        // System.out.printf("src bitset: %s\n", src_bitset.toString());
         
+        src_metadata_bitset.or(dst_metadata_bitset);
+        m.src.set_metadata_bitset(src_metadata_bitset);
+        m.dst.set_metadata_bitset(src_metadata_bitset);
+        
+
         // Set the type of the message depending on the find mode
         if (m.type == Message.MSG_INIT_GET)
           m.type = Message.MSG_GET;
