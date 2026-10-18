@@ -8,6 +8,7 @@ package peersim.kademlia;
  * @version 1.0
  */
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.TreeMap;
@@ -17,6 +18,10 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.BitSet;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.math.BigInteger;
+
 
 import jnr.a64asm.SysRegDescription;
 import peersim.config.Configuration;
@@ -493,14 +498,37 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     // JA - then check if the identifier is a member of the bitset, if not set it.
     // JA - this is how we detect the collision
     BitSet src_bitset = m.src.get_ident_bitset();
-    int identInt = Integer.parseInt((String) m.value, 16);
-    
+    String[] valueInputs = ((String) m.value).split(";");
+
+    int identInt = Integer.parseInt((String) valueInputs[0], 16);
     BitSet src_metadata_bitset = m.src.get_metadata_bitset();
 
     if (src_bitset.get(identInt) != true) {
       // System.out.printf("Key already in_merged_Bitmap: %s detected at %s\n", (String) m.value, CommonState.getTime());
       // System.out.printf("Setting bitset %s at %s\n", identInt, CommonState.getTime());
       src_bitset.set(identInt);
+
+      // JA - Also set the metadata bitsets
+      // JA - int(hash(ident + timestamp))
+      MessageDigest digest;
+      try {
+        digest = MessageDigest.getInstance("SHA-256");
+        byte hashMetadata[] = digest.digest(valueInputs[1].getBytes(StandardCharsets.UTF_8));
+        BigInteger metadataInt = new BigInteger(1, hashMetadata);
+        src_metadata_bitset.set(metadataInt.intValue());
+
+        // String concatMetadata = Integer.toString(identInt).concat(Long.toString(CommonState.getTime()));
+        // // Create a concat string combining the id and timestamp
+        // // JA - Now hash the string
+        // // JA - Convert to an integer so we can set the bit
+
+        // BigInteger metadataId = new BigInteger(concatMetadata);
+
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+      }
+
+
       // System.exit(0);
       // JA - finish the operation prematurely 
       // fop.setFinished(true); 

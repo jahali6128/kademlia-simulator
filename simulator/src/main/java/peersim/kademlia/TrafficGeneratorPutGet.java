@@ -63,7 +63,9 @@ public class TrafficGeneratorPutGet implements Control {
     MessageDigest digest;
     BigInteger id;
     String topic = GenerateRandIdentifier(2);
-    String value = topic;
+    String timestamp = Long.toString(CommonState.getTime());
+
+    String value = topic + ";" + timestamp;
     // JA - Check the cache first, otherwise perform a standard lookup
     // boolean isUnique = checkCache(topic);
     // while (isUnique == false) {
