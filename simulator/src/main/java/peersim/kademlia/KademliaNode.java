@@ -2,6 +2,7 @@ package peersim.kademlia;
 
 import java.math.BigInteger;
 import java.util.BitSet;
+import java.util.HashMap;
 
 
 
@@ -21,6 +22,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
   // private List<String> topicList;
   private BitSet ident_bitset;
   private BitSet metadata_bitset;
+  private HashMap<String, String> metadata_hashmap;
 
   /**
    * Creates a new Kademlia node with the given ID, address and port.
@@ -38,6 +40,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.is_server = true;
     this.ident_bitset = new BitSet(16);
     this.metadata_bitset = new BitSet(256);
+    this.metadata_hashmap = new HashMap<>();
   }
 
   /**
@@ -57,6 +60,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.is_server = true;
     this.ident_bitset = new BitSet(16);
     this.metadata_bitset = new BitSet(256);
+    this.metadata_hashmap = new HashMap<>();
   }
 
   /**
@@ -73,6 +77,8 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.is_server = true;
     this.ident_bitset = new BitSet(16);
     this.metadata_bitset = new BitSet(256);
+    this.metadata_hashmap = new HashMap<>();
+
   }
 
   /**
@@ -89,6 +95,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
     this.is_server = true;
     this.ident_bitset = n.ident_bitset;
     this.metadata_bitset = n.metadata_bitset;
+    this.metadata_hashmap = new HashMap<>();
   }
 
   /**
@@ -106,6 +113,14 @@ public class KademliaNode implements Comparable<KademliaNode> {
 
   public BitSet get_metadata_bitset() {
     return this.metadata_bitset;
+  }
+
+  public boolean get_metadata_hashmap(String key) {
+    return this.metadata_hashmap.containsKey(key);
+  }
+
+  public void set_metadata_hashmap(String key, String value) {
+    this.metadata_hashmap.put(key, value);
   }
 
   public void set_ident_bitset(BitSet new_bitset) {

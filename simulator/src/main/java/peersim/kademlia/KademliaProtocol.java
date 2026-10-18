@@ -500,41 +500,19 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     BitSet src_bitset = m.src.get_ident_bitset();
     String[] valueInputs = ((String) m.value).split(";");
 
-    int identInt = Integer.parseInt((String) valueInputs[0], 16);
-    BitSet src_metadata_bitset = m.src.get_metadata_bitset();
+    int identInt = Integer.parseInt(((String) valueInputs[0]), 16);
+    // Hashmap src_metadata_bitset = m.src.get_metadata_bitset();
 
     if (src_bitset.get(identInt) != true) {
-      // System.out.printf("Key already in_merged_Bitmap: %s detected at %s\n", (String) m.value, CommonState.getTime());
-      // System.out.printf("Setting bitset %s at %s\n", identInt, CommonState.getTime());
       src_bitset.set(identInt);
 
-      // JA - Also set the metadata bitsets
-      // JA - int(hash(ident + timestamp))
-      MessageDigest digest;
-      try {
-        digest = MessageDigest.getInstance("SHA-256");
-        byte hashMetadata[] = digest.digest(valueInputs[1].getBytes(StandardCharsets.UTF_8));
-        BigInteger metadataInt = new BigInteger(1, hashMetadata);
-        src_metadata_bitset.set(metadataInt.intValue());
-
-        // String concatMetadata = Integer.toString(identInt).concat(Long.toString(CommonState.getTime()));
-        // // Create a concat string combining the id and timestamp
-        // // JA - Now hash the string
-        // // JA - Convert to an integer so we can set the bit
-
-        // BigInteger metadataId = new BigInteger(concatMetadata);
-
-      } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
-      }
-
+      m.src.set_metadata_hashmap(((String) valueInputs[0]), valueInputs.toString());
 
       // System.exit(0);
       // JA - finish the operation prematurely 
       // fop.setFinished(true); 
       // findOp.remove(fop.getId());
       // return fop;
-    //   // Exit the simulation early
     } 
     
     // Send ALPHA messages to the closest nodes
@@ -548,12 +526,17 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         .getKademliaNode(); // new KademliaNode(nextNode);
         
         BitSet dst_bitset = m.dst.get_ident_bitset();
-        BitSet dst_metadata_bitset = m.dst.get_metadata_bitset();
+        // BitSet dst_metadata_bitset = m.dst.get_metadata_bitset();
         
         // JA - We need to compare bitsets and check for duplicates, else merge
+        // JA - Clone them first so we don't alter the actual ones
+        BitSet srcBitset = (BitSet) m.src.get_ident_bitset().clone();
+        BitSet dstBitset = (BitSet) m.dst.get_ident_bitset().clone();
         
-
-
+        srcBitset.and(dstBitset);
+        for (int b = srcBitset.nextSetBit(0); b >= 0; b = srcBitset.nextSetBit(b + 1)) {
+          System.out.println("Bits set at " + b);
+        }
 
         // JA - "merge" the new bitsets together and set to both src and dst        
         // JA - cannot be assigned to new variable so `src_bitset` has the changes
@@ -561,9 +544,9 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         m.src.set_ident_bitset(src_bitset);
         m.dst.set_ident_bitset(src_bitset);
         
-        src_metadata_bitset.or(dst_metadata_bitset);
-        m.src.set_metadata_bitset(src_metadata_bitset);
-        m.dst.set_metadata_bitset(src_metadata_bitset);
+        // src_metadata_bitset.or(dst_metadata_bitset);
+        // m.src.set_metadata_bitset(src_metadata_bitset);
+        // m.dst.set_metadata_bitset(src_metadata_bitset);
         
 
         // Set the type of the message depending on the find mode
