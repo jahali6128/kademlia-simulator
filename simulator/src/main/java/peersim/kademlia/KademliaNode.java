@@ -3,6 +3,7 @@ package peersim.kademlia;
 import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Map;
 
 
 
@@ -115,8 +116,12 @@ public class KademliaNode implements Comparable<KademliaNode> {
     return this.metadata_bitset;
   }
 
-  public boolean get_metadata_hashmap(String key) {
-    return this.metadata_hashmap.containsKey(key);
+  public Map<String,String> get_all_hashmap() {
+    return this.metadata_hashmap;
+  }
+
+  public String get_metadata_hashmap(String key) {
+    return this.metadata_hashmap.getOrDefault(key, "");
   }
 
   public void set_metadata_hashmap(String key, String value) {

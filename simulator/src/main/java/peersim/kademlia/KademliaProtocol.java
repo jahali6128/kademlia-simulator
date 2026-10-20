@@ -21,6 +21,7 @@ import java.util.BitSet;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.math.BigInteger;
+import java.util.Map;
 
 
 import jnr.a64asm.SysRegDescription;
@@ -506,7 +507,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     if (src_bitset.get(identInt) != true) {
       src_bitset.set(identInt);
 
-      m.src.set_metadata_hashmap(((String) valueInputs[0]), valueInputs.toString());
+      m.src.set_metadata_hashmap(((String) valueInputs[0]), (String) m.value);
 
       // System.exit(0);
       // JA - finish the operation prematurely 
@@ -535,7 +536,15 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         
         srcBitset.and(dstBitset);
         for (int b = srcBitset.nextSetBit(0); b >= 0; b = srcBitset.nextSetBit(b + 1)) {
-          System.out.println("Bits set at " + b);
+          // System.out.println("Bits set at " + b);
+
+          String checkSrcMeta = m.src.get_metadata_hashmap(String.valueOf(b)); 
+          String checkDstMeta = m.dst.get_metadata_hashmap(String.valueOf(b));
+
+          if (!(checkSrcMeta.equals(checkDstMeta))) {
+            System.out.println("Duplicate Cache Detected!");
+            System.exit(0);
+          }
         }
 
         // JA - "merge" the new bitsets together and set to both src and dst        
@@ -544,11 +553,24 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         m.src.set_ident_bitset(src_bitset);
         m.dst.set_ident_bitset(src_bitset);
         
+        // JA - merge the hashmaps together by iterating through both the source and dst 
+        Map<String, String> srcMap = m.src.get_all_hashmap();
+        Map<String, String> dstMap = m.dst.get_all_hashmap();
+
+        // JA - start with the src, add those to the dst
+        for (Map.Entry<String, String> entry: srcMap.entrySet()) {
+          m.dst.set_metadata_hashmap(entry.getKey(), entry.getValue());
+        }
+
+        // JA - then do the same for dst
+        for (Map.Entry<String, String> entry: dstMap.entrySet()) {
+          m.src.set_metadata_hashmap(entry.getKey(), entry.getValue());
+        }
+
         // src_metadata_bitset.or(dst_metadata_bitset);
         // m.src.set_metadata_bitset(src_metadata_bitset);
         // m.dst.set_metadata_bitset(src_metadata_bitset);
         
-
         // Set the type of the message depending on the find mode
         if (m.type == Message.MSG_INIT_GET)
           m.type = Message.MSG_GET;
