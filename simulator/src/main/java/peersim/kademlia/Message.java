@@ -82,6 +82,8 @@ public class Message extends SimpleEvent {
    */
   public static final int MSG_INIT_FIND_REGION_BASED = 16;
 
+  public static final int MSG_CACHE_BROADCAST = 18;
+
   // ______________________________________________________________________________________________
   /** This Object contains the body of the message, no matter what it contains */
   public Object body = null;
@@ -308,4 +310,9 @@ public class Message extends SimpleEvent {
     result.put("time", this.timestamp);
     return result;
   }
+
+  public static Message makeCacheBroadcast(String identifier, String value) {
+    return new Message(MSG_CACHE_BROADCAST, identifier, value);
+  }
+
 }

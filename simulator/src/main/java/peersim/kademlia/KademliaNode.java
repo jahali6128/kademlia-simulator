@@ -121,7 +121,7 @@ public class KademliaNode implements Comparable<KademliaNode> {
   }
 
   public String get_metadata_hashmap(String key) {
-    return this.metadata_hashmap.getOrDefault(key, "");
+    return this.metadata_hashmap.getOrDefault(key, "nothing found");
   }
 
   public void set_metadata_hashmap(String key, String value) {

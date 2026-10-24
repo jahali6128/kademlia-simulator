@@ -15,7 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.BitSet;
 import java.util.HexFormat;
 
-// import peersim.kademlia.KademliaNode;
+import peersim.kademlia.KademliaProtocol;
 
 /**
  * This control generates random search traffic from nodes to random destination
@@ -147,6 +147,9 @@ public class TrafficGeneratorPutGet implements Control {
     }
   }
 
+  public void broadcastCache(KademliaNode kNode, Node source, String identifier, String value, int pid) {
+    KademliaProtocol.broadcastToAllNodes(kNode, source, identifier, value, pid);
+  }
   // ______________________________________________________________________________________________
   /**
    * Every call of this control generates and send a random find node message
@@ -155,17 +158,25 @@ public class TrafficGeneratorPutGet implements Control {
    */
   public boolean execute() {
 
+    // System.out.println("pid: " + pid);
+
     Node start;
     do {
       // start = Network.get(CommonState.r.nextInt(Network.size()));
       start = Network.get(ThreadLocalRandom.current().nextInt(Network.size()));
     } while ((start == null) || (!start.isUp()));
 
-    System.out.printf("Identifier:%s\n", identToSubmit);
+    // System.out.printf("Identifier:%s\n", identToSubmit);
 
     KademliaNode startKademliaNode = start.getKademliaProtocol().getKademliaNode();
     // System.out.printf("Kademlia Node Bitsets: %s at %s\n",
     // startKademliaNode.get_ident_bitset().cardinality(), CommonState.getTime());
+
+    startKademliaNode.getProtocol().broadcastCache(
+    start,
+    identToSubmit,
+    put.value.toString(),
+    pid);
 
     EDSimulator.add(0, generatePutMessage(startKademliaNode), start, pid);
     // System.out.printf("ACTUAL bits set: %d\n",
@@ -182,6 +193,7 @@ public class TrafficGeneratorPutGet implements Control {
   }
 
   // ______________________________________________________________________________________________
+
 
 } // End of class
 // ______________________________________________________________________________________________
