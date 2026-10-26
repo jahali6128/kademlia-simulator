@@ -710,10 +710,23 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         break;
       case Message.MSG_CACHE_BROADCAST:
         m = (Message) event;
+
+        long receiveTime = CommonState.getTime();
+        long sendTime = m.timestamp;
+
+        System.out.printf(
+            "CACHE_BROADCAST id=%d src=%s dst=%s sent=%d received=%d latency=%d%n",
+            m.id,
+            m.src == null ? "null" : m.src.getId(),
+            m.dst == null ? "null" : m.dst.getId(),
+            sendTime,
+            receiveTime,
+            receiveTime - sendTime);
+
         String identifier = (String) m.body;
         String value = (String) m.value;
-
         int identifierIndex = Integer.parseInt(identifier, 16);
+
         KademliaNode localNode = this.getKademliaNode();
 
         if (!localNode.get_ident_bitset().get(identifierIndex)) {
