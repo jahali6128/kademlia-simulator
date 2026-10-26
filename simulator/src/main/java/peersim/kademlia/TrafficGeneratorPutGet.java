@@ -152,8 +152,8 @@ public class TrafficGeneratorPutGet implements Control {
       String identifier,
       String value,
       int pid) {
-    source.getKademliaProtocol()
-        .broadcastToAllNodes(source, identifier, value, pid);
+    Message broadcast = Message.makeCacheBroadcast(identifier, value);
+    EDSimulator.add(0, broadcast, source, pid);
   }
   // ______________________________________________________________________________________________
   /**
@@ -173,16 +173,15 @@ public class TrafficGeneratorPutGet implements Control {
 
     Message put = generatePutMessage(startKademliaNode);
 
-    protocol.broadcastToAllNodes(
-        start,
+    Message broadcast = Message.makeCacheBroadcast(
         identToSubmit,
-        (String) put.value,
-        pid);
+        (String) put.value);
+    EDSimulator.add(0, broadcast, start, pid);
 
     EDSimulator.add(0, put, start, pid);
 
-    int identIndex = Integer.parseInt(identToSubmit, 16);
-    KademliaObserver.bitSetIdentifiers.set(identIndex);
+    // int identIndex = Integer.parseInt(identToSubmit, 16);
+    // KademliaObserver.bitSetIdentifiers.set(identIndex);
 
     return false;
   }
