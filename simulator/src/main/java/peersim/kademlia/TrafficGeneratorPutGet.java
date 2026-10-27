@@ -62,7 +62,7 @@ public class TrafficGeneratorPutGet implements Control {
     // Existing active destination node
     MessageDigest digest;
     BigInteger id;
-    String topic = GenerateRandIdentifier(2);
+    String topic = GenerateRandIdentifier(1);
     String timestamp = Long.toString(CommonState.getTime());
 
     String value = topic + ";" + timestamp;
@@ -75,7 +75,7 @@ public class TrafficGeneratorPutGet implements Control {
 
     boolean isUnique = checkNodeCache(kNode, topic);
     while (isUnique == false) {
-      topic = GenerateRandIdentifier(2);
+      topic = GenerateRandIdentifier(1);
       isUnique = checkNodeCache(kNode, topic);
     }
 
@@ -173,10 +173,10 @@ public class TrafficGeneratorPutGet implements Control {
 
     Message put = generatePutMessage(startKademliaNode);
 
-    Message broadcast = Message.makeCacheBroadcast(
-        identToSubmit,
-        (String) put.value);
-    EDSimulator.add(0, broadcast, start, pid);
+    // Message broadcast = Message.makeCacheBroadcast(
+    //     identToSubmit,
+    //     (String) put.value);
+    // EDSimulator.add(0, broadcast, start, pid);
 
     EDSimulator.add(0, put, start, pid);
 
