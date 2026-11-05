@@ -256,9 +256,36 @@ def plot_gossip():
     plt.show()
 
 
+def plot_broadcast():
+    # Latency
+    # x_points = [100, 500, 1000, 2000, 2500]
+    # y_points_80 = [1451.2, 1613.2, 2571.2, 4316.4, 5179.6]
+    # y_points_90 = [1932.9, 1555.2, 2515.1, 4257.8, 5002.9]
+    # y_points_100 = [1843, 1583, 2389, 4087, 5000]
+    # plt.plot(x_points, y_points_80)
+    # plt.plot(x_points, y_points_90)
+    # plt.plot(x_points, y_points_100)
+
+    # Broadcast Depth
+    # x_points = [3, 6, 9, 12, 15]
+    # y_points_80 = [3469.6, 2607.6, 3003.6, 4360, 5092]
+    # plt.plot(x_points, y_points_80)
+    
+    # Baseline
+    x_points = [100, 500, 1000, 2000, 2500]
+    y_points_80 = [2403.2, 10408.4, 20161.6, 37927.6, 47039.6]
+    y_points_90 = [2342, 10168.8, 19972.3, 38824.3, 46305.6]
+    y_points_100 = [2351, 10319, 19641, 37790, 46189]
+    plt.plot(x_points, y_points_80)
+    plt.plot(x_points, y_points_90)
+    plt.plot(x_points, y_points_100)
+    plt.show()
+
+
 if __name__ == "__main__":
     # cache_timer_vs_ttc()
-    plot_gossip()
+    # plot_gossip()
+    plot_broadcast()
     # plot_network_coll()
     # plot_latency_ttc()
     # plot_cache()

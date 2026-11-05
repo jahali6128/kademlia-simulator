@@ -264,6 +264,19 @@ def run_cache_bits_set():
     print(f"Local Table: {local_table}")
 
 
+def rps_broadcast():
+    for _ in range(10):
+        check_output = subprocess.run(
+            "./run.sh config/kademlia_putget.cfg > kad.log && head -n 7 kad.log | grep -m 1 'Msg'",
+            shell=True,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        result = check_output.stdout.split()[2]
+        print(result)
+
+
 if __name__ == "__main__":
     # print(run_single_experiment_latency(rps=20, latency=1))
     test_timer_range = [0.5, 1, 1.5, 2, 2.5, 3]
@@ -275,6 +288,7 @@ if __name__ == "__main__":
     alpha = [1, 2, 3, 4, 5, 10]
     # for a in alpha:
     # print(run_single_experiment_alpha(rps=80, alpha=2))
-    run_cache_bits_set()
+    # run_cache_bits_set()
+    rps_broadcast()
 
     # print(rps_network_id_requests(rps=10))

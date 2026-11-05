@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TreeMap;
@@ -25,6 +26,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.math.BigInteger;
 import java.util.Map;
+import java.util.Set;
 
 import jnr.a64asm.SysRegDescription;
 import peersim.config.Configuration;
@@ -520,23 +522,23 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
     // JA - then check if the identifier is a member of the bitset, if not set it.
     // JA - this is how we detect the collision
-    BitSet src_bitset = m.src.get_ident_bitset();
-    String[] valueInputs = ((String) m.value).split(";");
+    // BitSet src_bitset = m.src.get_ident_bitset();
+    // String[] valueInputs = ((String) m.value).split(";");
 
-    int identInt = Integer.parseInt(((String) valueInputs[0]), 16);
-    // Hashmap src_metadata_bitset = m.src.get_metadata_bitset();
+    // int identInt = Integer.parseInt(((String) valueInputs[0]), 16);
+    // // Hashmap src_metadata_bitset = m.src.get_metadata_bitset();
 
-    if (src_bitset.get(identInt) != true) {
-      src_bitset.set(identInt);
+    // if (src_bitset.get(identInt) != true) {
+    // src_bitset.set(identInt);
 
-      m.src.set_metadata_hashmap(((String) valueInputs[0]), (String) m.value);
+    // m.src.set_metadata_hashmap(((String) valueInputs[0]), (String) m.value);
 
-      // // System.exit(0);
-      // // JA - finish the operation prematurely
-      // // fop.setFinished(true);
-      // // findOp.remove(fop.getId());
-      // // return fop;
-    }
+    // // System.exit(0);
+    // // JA - finish the operation prematurely
+    // // fop.setFinished(true);
+    // // findOp.remove(fop.getId());
+    // // return fop;
+    // }
 
     // Send ALPHA messages to the closest nodes
     for (int i = 0; i < KademliaCommonConfig.ALPHA; i++) {
@@ -548,52 +550,54 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
             .getKademliaProtocol()
             .getKademliaNode(); // new KademliaNode(nextNode);
 
-        BitSet dst_bitset = m.dst.get_ident_bitset();
-        // BitSet dst_metadata_bitset = m.dst.get_metadata_bitset();
+        // BitSet dst_bitset = m.dst.get_ident_bitset();
+        // // BitSet dst_metadata_bitset = m.dst.get_metadata_bitset();
 
-        // JA - We need to compare bitsets and check for duplicates, else merge
-        // JA - Clone them first so we don't alter the actual ones
-        BitSet srcBitset = (BitSet) m.src.get_ident_bitset().clone();
-        BitSet dstBitset = (BitSet) m.dst.get_ident_bitset().clone();
+        // // JA - We need to compare bitsets and check for duplicates, else merge
+        // // JA - Clone them first so we don't alter the actual ones
+        // BitSet srcBitset = (BitSet) m.src.get_ident_bitset().clone();
+        // BitSet dstBitset = (BitSet) m.dst.get_ident_bitset().clone();
 
-        srcBitset.and(dstBitset);
-        for (int b = srcBitset.nextSetBit(0); b >= 0; b = srcBitset.nextSetBit(b +
-            1)) {
-          // System.out.println("Bits set at " + b);
+        // srcBitset.and(dstBitset);
+        // for (int b = srcBitset.nextSetBit(0); b >= 0; b = srcBitset.nextSetBit(b +
+        // 1)) {
+        // // System.out.println("Bits set at " + b);
 
-          String checkSrcMeta = m.src.get_metadata_hashmap(String.valueOf(b));
-          String checkDstMeta = m.dst.get_metadata_hashmap(String.valueOf(b));
+        // String checkSrcMeta = m.src.get_metadata_hashmap(String.valueOf(b));
+        // String checkDstMeta = m.dst.get_metadata_hashmap(String.valueOf(b));
 
-          if (!(checkSrcMeta.equals(checkDstMeta))) {
-            // JA - make sure neither of them are the default values
-            if (!checkSrcMeta.equals("nothing found") && (!checkDstMeta.equals("nothing found"))) {
-              System.out.println("Duplicate Cache Detected at " + CommonState.getTime());
-              System.out.println("checkSrcMeta: " + checkSrcMeta);
-              System.out.println("checkDstMeta: " + checkDstMeta);
-              System.exit(0);
-            }
-          }
-        }
+        // if (!(checkSrcMeta.equals(checkDstMeta))) {
+        // // JA - make sure neither of them are the default values
+        // if (!checkSrcMeta.equals("nothing found") && (!checkDstMeta.equals("nothing
+        // found"))) {
+        // System.out.println("Duplicate Cache Detected at " + CommonState.getTime());
+        // System.out.println("checkSrcMeta: " + checkSrcMeta);
+        // System.out.println("checkDstMeta: " + checkDstMeta);
+        // System.exit(0);
+        // }
+        // }
+        // }
 
-        // JA - "merge" the new bitsets together and set to both src and dst
-        // JA - cannot be assigned to new variable so `src_bitset` has the changes
-        src_bitset.or(dst_bitset);
-        m.src.set_ident_bitset(src_bitset);
-        m.dst.set_ident_bitset(src_bitset);
+        // // JA - "merge" the new bitsets together and set to both src and dst
+        // // JA - cannot be assigned to new variable so `src_bitset` has the changes
+        // src_bitset.or(dst_bitset);
+        // m.src.set_ident_bitset(src_bitset);
+        // m.dst.set_ident_bitset(src_bitset);
 
-        // JA - merge the hashmaps together by iterating through both the source and dst
-        Map<String, String> srcMap = m.src.get_all_hashmap();
-        Map<String, String> dstMap = m.dst.get_all_hashmap();
+        // // JA - merge the hashmaps together by iterating through both the source and
+        // dst
+        // Map<String, String> srcMap = m.src.get_all_hashmap();
+        // Map<String, String> dstMap = m.dst.get_all_hashmap();
 
-        // // JA - start with the src, add those to the dst
-        for (Map.Entry<String, String> entry : srcMap.entrySet()) {
-          m.dst.set_metadata_hashmap(entry.getKey(), entry.getValue());
-        }
+        // // // JA - start with the src, add those to the dst
+        // for (Map.Entry<String, String> entry : srcMap.entrySet()) {
+        // m.dst.set_metadata_hashmap(entry.getKey(), entry.getValue());
+        // }
 
-        // // JA - then do the same for dst
-        for (Map.Entry<String, String> entry : dstMap.entrySet()) {
-          m.src.set_metadata_hashmap(entry.getKey(), entry.getValue());
-        }
+        // // // JA - then do the same for dst
+        // for (Map.Entry<String, String> entry : dstMap.entrySet()) {
+        // m.src.set_metadata_hashmap(entry.getKey(), entry.getValue());
+        // }
 
         // src_metadata_bitset.or(dst_metadata_bitset);
         // m.src.set_metadata_bitset(src_metadata_bitset);
@@ -740,6 +744,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         // TODO: Implement handling for a store message.
         break;
       case Message.MSG_CACHE_BROADCAST:
+        KademliaObserver.msg_deliv.add(1);
         m = (Message) event;
 
         if (m.dst == null) {
@@ -751,12 +756,28 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
           break;
         }
 
+        String[] valueInputs = ((String) m.value).split(";");
+        int identInt = Integer.parseInt(valueInputs[0], 16);
+
+        boolean firstReceipt = !m.dst.get_ident_bitset().get(identInt);
+
+        if (firstReceipt) {
+          broadcastToAllNodes(
+              myNode,
+              (String) m.body,
+              (String) m.value,
+              myPid);
+        }
+        // if (!m.broadcastVisited.add(myNode.getID())) {
+        // break;
+        // }
+
         // JA - then check if the identifier is a member of the bitset, if not set it.
         // JA - this is how we detect the collision
         BitSet src_bitset = m.src.get_ident_bitset();
-        String[] valueInputs = ((String) m.value).split(";");
+        // String[] valueInputs = ((String) m.value).split(";");
 
-        int identInt = Integer.parseInt(((String) valueInputs[0]), 16);
+        // int identInt = Integer.parseInt(((String) valueInputs[0]), 16);
         // Hashmap src_metadata_bitset = m.src.get_metadata_bitset();
 
         if (src_bitset.get(identInt) != true) {
@@ -780,6 +801,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
             // JA - make sure neither of them are the default values
             if (!checkSrcMeta.equals("nothing found") && (!checkDstMeta.equals("nothing found"))) {
               System.out.println("Duplicate Cache Detected!");
+              System.out.println("Total Msg: " + KademliaObserver.msg_deliv.getSum());
               System.out.println("checkSrcMeta: " + checkSrcMeta);
               System.out.println("checkDstMeta: " + checkDstMeta);
               System.exit(0);
@@ -811,7 +833,14 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
           m.src.set_metadata_hashmap(entry.getKey(), entry.getValue());
         }
 
-        break;
+        // broadcastToAllNodes(
+        //     myNode,
+        //     (String) m.body,
+        //     (String) m.value,
+        //     myPid,
+        //     m.broadcastVisited);
+
+        // break;
       /*
        * case Timeout.TIMEOUT: // timeout
        * Timeout t = (Timeout) event;
@@ -952,6 +981,14 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     this.callback = callback;
   }
 
+  // public void broadcastToAllNodes(
+  //     Node source,
+  //     String identifier,
+  //     String value,
+  //     int myPid) {
+  //   broadcastToAllNodes(source, identifier, value, myPid, new HashSet<>());
+  // }
+
   public void broadcastToAllNodes(
       Node source,
       String identifier,
@@ -960,11 +997,14 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
     UnreliableTransport networkTransport = (UnreliableTransport) Network.prototype.getProtocol(tid);
     List<Node> eligibleDestinations = new ArrayList<>();
+    // visitedNodes.add(source.getKademliaProtocol().getKademliaNode().getId());
 
     for (int i = 0; i < Network.size(); i++) {
       Node destination = Network.get(i);
 
-      if (destination != null && destination.isUp() && destination != source) {
+      if (destination != null
+          && destination.isUp()
+          && destination != source) {
         eligibleDestinations.add(destination);
       }
     }
@@ -979,6 +1019,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
       message.dst = destination
           .getKademliaProtocol()
           .getKademliaNode();
+      // message.broadcastVisited = visitedNodes;
 
       networkTransport.send(source, destination, message, myPid);
     }

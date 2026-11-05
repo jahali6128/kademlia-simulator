@@ -1,7 +1,10 @@
 package peersim.kademlia;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.math.BigInteger;
 
 /**
  * Message class provide all functionalities to magage the various messages, principally LOOKUP
@@ -106,6 +109,9 @@ public class Message extends SimpleEvent {
 
   /** Source node of the message: has to be filled at application level */
   public KademliaNode src;
+
+  /** Nodes that have already processed this cache broadcast. */
+  public Set<BigInteger> broadcastVisited = new HashSet<>();
 
   /** Available to count the number of hops the message did. */
   protected int nrHops = 0;

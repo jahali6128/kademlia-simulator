@@ -152,8 +152,8 @@ public class TrafficGeneratorPutGet implements Control {
       String identifier,
       String value,
       int pid) {
-    Message broadcast = Message.makeCacheBroadcast(identifier, value);
-    EDSimulator.add(0, broadcast, source, pid);
+    // Message broadcast = Message.makeCacheBroadcast(identifier, value);
+    // EDSimulator.add(0, broadcast, source, pid);
   }
   // ______________________________________________________________________________________________
   /**
@@ -173,10 +173,10 @@ public class TrafficGeneratorPutGet implements Control {
 
     Message put = generatePutMessage(startKademliaNode);
 
-    // Message broadcast = Message.makeCacheBroadcast(
-    //     identToSubmit,
-    //     (String) put.value);
-    // EDSimulator.add(0, broadcast, start, pid);
+    Message broadcast = Message.makeCacheBroadcast(
+        identToSubmit,
+        (String) put.value);
+    EDSimulator.add(0, broadcast, start, pid);
 
     EDSimulator.add(0, put, start, pid);
 
