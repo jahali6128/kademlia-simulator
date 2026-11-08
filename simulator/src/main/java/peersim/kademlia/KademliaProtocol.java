@@ -65,6 +65,12 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   final String PAR_BROADCAST_NODES = "BROADCAST_NODES";
   /** Default number of cache broadcast destinations. */
   private static final int DEFAULT_BROADCAST_NODES = 3;
+  /** The parameter name for the cache broadcast delay in seconds. */
+  private static final String PAR_BROADCAST_DELAY_SECONDS = "BROADCAST_DELAY_SECONDS";
+  /** Number of simulation time units in one second. */
+  private static final long TIME_UNITS_PER_SECOND = 1000L;
+  /** Event type used to execute a delayed cache broadcast. */
+  private static final int EVENT_DELAYED_CACHE_BROADCAST = Message.MSG_CACHE_BROADCAST + 1;
 
   /** The parameter name for transport. */
   private static final String PAR_TRANSPORT = "transport";
@@ -85,6 +91,19 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
   /** Number of random destinations used for cache broadcasts. */
   private static int broadcastNodes;
+  /** Delay before forwarding a cache broadcast. */
+  private static long broadcastDelaySeconds;
+
+  private static final class DelayedCacheBroadcast extends SimpleEvent {
+    private final String identifier;
+    private final String value;
+
+    private DelayedCacheBroadcast(String identifier, String value) {
+      super(EVENT_DELAYED_CACHE_BROADCAST);
+      this.identifier = identifier;
+      this.value = value;
+    }
+  }
 
   /** Routing table of this Pastry node. */
   private RoutingTable routingTable;
@@ -171,6 +190,12 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         DEFAULT_BROADCAST_NODES);
     if (broadcastNodes < 0) {
       throw new IllegalArgumentException(PAR_BROADCAST_NODES + " must not be negative");
+    }
+    broadcastDelaySeconds = Configuration.getLong(
+        prefix + "." + PAR_BROADCAST_DELAY_SECONDS,
+        0);
+    if (broadcastDelaySeconds < 0) {
+      throw new IllegalArgumentException(PAR_BROADCAST_DELAY_SECONDS + " must not be negative");
     }
 
     _ALREADY_INSTALLED = true;
@@ -762,14 +787,23 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         boolean firstReceipt = !m.dst.get_ident_bitset().get(identInt);
 
         if (firstReceipt) {
-          broadcastToAllNodes(
-              myNode,
-              (String) m.body,
-              (String) m.value,
-              myPid);
+          if (broadcastDelaySeconds == 0) {
+            broadcastToAllNodes(
+                myNode,
+                (String) m.body,
+                (String) m.value,
+                myPid);
+          } else {
+            EDSimulator.add(
+                broadcastDelaySeconds * TIME_UNITS_PER_SECOND,
+                new DelayedCacheBroadcast((String) m.body, (String) m.value),
+                myNode,
+                myPid);
+          }
         }
         // if (!m.broadcastVisited.add(myNode.getID())) {
         // break;
+
         // }
 
         // JA - then check if the identifier is a member of the bitset, if not set it.
@@ -793,9 +827,9 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         srcBitset.and(dstBitset);
         for (int b = srcBitset.nextSetBit(0); b >= 0; b = srcBitset.nextSetBit(b + 1)) {
           // System.out.println("Bits set at " + b);
-
-          String checkSrcMeta = m.src.get_metadata_hashmap(String.valueOf(b));
-          String checkDstMeta = m.dst.get_metadata_hashmap(String.valueOf(b));
+          String identifier = Integer.toHexString(b);
+          String checkSrcMeta = m.src.get_metadata_hashmap(identifier);
+          String checkDstMeta = m.dst.get_metadata_hashmap(identifier);
 
           if (!(checkSrcMeta.equals(checkDstMeta))) {
             // JA - make sure neither of them are the default values
@@ -840,7 +874,16 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         //     myPid,
         //     m.broadcastVisited);
 
-        // break;
+        break;
+
+      case EVENT_DELAYED_CACHE_BROADCAST:
+        DelayedCacheBroadcast delayedBroadcast = (DelayedCacheBroadcast) event;
+        broadcastToAllNodes(
+            myNode,
+            delayedBroadcast.identifier,
+            delayedBroadcast.value,
+            myPid);
+        break;
       /*
        * case Timeout.TIMEOUT: // timeout
        * Timeout t = (Timeout) event;

@@ -62,7 +62,7 @@ public class TrafficGeneratorPutGet implements Control {
     // Existing active destination node
     MessageDigest digest;
     BigInteger id;
-    String topic = GenerateRandIdentifier(1);
+    String topic = GenerateRandIdentifier(2);
     String timestamp = Long.toString(CommonState.getTime());
 
     String value = topic + ";" + timestamp;
@@ -75,7 +75,7 @@ public class TrafficGeneratorPutGet implements Control {
 
     boolean isUnique = checkNodeCache(kNode, topic);
     while (isUnique == false) {
-      topic = GenerateRandIdentifier(1);
+      topic = GenerateRandIdentifier(2);
       isUnique = checkNodeCache(kNode, topic);
     }
 
@@ -168,10 +168,10 @@ public class TrafficGeneratorPutGet implements Control {
       start = Network.get(ThreadLocalRandom.current().nextInt(Network.size()));
     } while (start == null || !start.isUp());
 
-    KademliaProtocol protocol = start.getKademliaProtocol();
-    KademliaNode startKademliaNode = protocol.getKademliaNode();
+    // KademliaProtocol protocol = start.getKademliaProtocol();
+    // KademliaNode startKademliaNode = protocol.getKademliaNode();
 
-    Message put = generatePutMessage(startKademliaNode);
+    Message put = generatePutMessage(selectNodeWithCapacity(2));
 
     Message broadcast = Message.makeCacheBroadcast(
         identToSubmit,
@@ -187,7 +187,22 @@ public class TrafficGeneratorPutGet implements Control {
   }
 
   // ______________________________________________________________________________________________
+  private KademliaNode selectNodeWithCapacity(int identifierBytes) {
+    int capacity = 1 << (identifierBytes * Byte.SIZE);
 
+    for (int attempts = 0; attempts < Network.size() * 100; attempts++) {
+      Node node = Network.get(ThreadLocalRandom.current().nextInt(Network.size()));
 
+      if (node != null && node.isUp()) {
+        KademliaNode kNode = node.getKademliaProtocol().getKademliaNode();
+
+        if (kNode.get_ident_bitset().cardinality() < capacity) {
+          return kNode;
+        }
+      }
+    }
+
+    throw new IllegalStateException("No active node has an unused identifier");
+  }
 } // End of class
 // ______________________________________________________________________________________________
