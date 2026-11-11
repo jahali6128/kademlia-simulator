@@ -69,10 +69,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   private static final String PAR_BROADCAST_TTL = "BROADCAST_TTL";
   /** Default maximum number of cache broadcast forwarding hops. */
   private static final int DEFAULT_BROADCAST_TTL = 3;
-  /** The parameter name for the cache broadcast delay in seconds. */
+  /** The parameter name for the cache broadcast delay in milliseconds. */
   private static final String PAR_BROADCAST_DELAY_SECONDS = "BROADCAST_DELAY_SECONDS";
-  /** Number of simulation time units in one second. */
-  private static final long TIME_UNITS_PER_SECOND = 1000L;
   /** Event type used to execute a delayed cache broadcast. */
   private static final int EVENT_DELAYED_CACHE_BROADCAST = Message.MSG_CACHE_BROADCAST + 1;
 
@@ -97,8 +95,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   private static int broadcastNodes;
   /** Maximum number of forwarding hops for cache broadcasts. */
   private static int broadcastTtl;
-  /** Delay before forwarding a cache broadcast. */
-  private static long broadcastDelaySeconds;
+  /** Delay before forwarding a cache broadcast, in milliseconds. */
+  private static long broadcastDelayMilliseconds;
 
   private static final class DelayedCacheBroadcast extends SimpleEvent {
     private final String identifier;
@@ -205,10 +203,10 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     if (broadcastTtl < 0) {
       throw new IllegalArgumentException(PAR_BROADCAST_TTL + " must not be negative");
     }
-    broadcastDelaySeconds = Configuration.getLong(
+    broadcastDelayMilliseconds = Configuration.getLong(
         prefix + "." + PAR_BROADCAST_DELAY_SECONDS,
         0);
-    if (broadcastDelaySeconds < 0) {
+    if (broadcastDelayMilliseconds < 0) {
       throw new IllegalArgumentException(PAR_BROADCAST_DELAY_SECONDS + " must not be negative");
     }
 
@@ -802,7 +800,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         boolean firstReceipt = !m.dst.get_ident_bitset().get(identInt);
 
         if (firstReceipt && m.broadcastTtl > 0) {
-          if (broadcastDelaySeconds == 0) {
+          if (broadcastDelayMilliseconds == 0) {
             broadcastToAllNodes(
                 myNode,
                 (String) m.body,
@@ -811,7 +809,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
                 m.broadcastTtl);
           } else {
             EDSimulator.add(
-                broadcastDelaySeconds * TIME_UNITS_PER_SECOND,
+                broadcastDelayMilliseconds,
                 new DelayedCacheBroadcast(
                     (String) m.body,
                     (String) m.value,
@@ -853,7 +851,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
           if (!(checkSrcMeta.equals(checkDstMeta))) {
             // JA - make sure neither of them are the default values
             if (!checkSrcMeta.equals("nothing found") && (!checkDstMeta.equals("nothing found"))) {
-              System.out.println("Duplicate Cache Detected!");
+              System.out.println("Duplicate Cache Detected at " + CommonState.getTime());
               System.out.println("Total Msg: " + KademliaObserver.msg_deliv.getSum());
               System.out.println("checkSrcMeta: " + checkSrcMeta);
               System.out.println("checkDstMeta: " + checkDstMeta);
