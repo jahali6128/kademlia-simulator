@@ -113,6 +113,9 @@ public class Message extends SimpleEvent {
   /** Nodes that have already processed this cache broadcast. */
   public Set<BigInteger> broadcastVisited = new HashSet<>();
 
+  /** Remaining forwarding hops for a cache broadcast. */
+  public int broadcastTtl;
+
   /** Available to count the number of hops the message did. */
   protected int nrHops = 0;
 
@@ -319,6 +322,12 @@ public class Message extends SimpleEvent {
 
   public static Message makeCacheBroadcast(String identifier, String value) {
     return new Message(MSG_CACHE_BROADCAST, identifier, value);
+  }
+
+  public static Message makeCacheBroadcast(String identifier, String value, int broadcastTtl) {
+    Message message = makeCacheBroadcast(identifier, value);
+    message.broadcastTtl = broadcastTtl;
+    return message;
   }
 
 }

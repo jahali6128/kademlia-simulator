@@ -65,6 +65,10 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
   final String PAR_BROADCAST_NODES = "BROADCAST_NODES";
   /** Default number of cache broadcast destinations. */
   private static final int DEFAULT_BROADCAST_NODES = 3;
+  /** The parameter name for the maximum number of cache broadcast forwarding hops. */
+  private static final String PAR_BROADCAST_TTL = "BROADCAST_TTL";
+  /** Default maximum number of cache broadcast forwarding hops. */
+  private static final int DEFAULT_BROADCAST_TTL = 3;
   /** The parameter name for the cache broadcast delay in seconds. */
   private static final String PAR_BROADCAST_DELAY_SECONDS = "BROADCAST_DELAY_SECONDS";
   /** Number of simulation time units in one second. */
@@ -91,17 +95,21 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
   /** Number of random destinations used for cache broadcasts. */
   private static int broadcastNodes;
+  /** Maximum number of forwarding hops for cache broadcasts. */
+  private static int broadcastTtl;
   /** Delay before forwarding a cache broadcast. */
   private static long broadcastDelaySeconds;
 
   private static final class DelayedCacheBroadcast extends SimpleEvent {
     private final String identifier;
     private final String value;
+    private final int broadcastTtl;
 
-    private DelayedCacheBroadcast(String identifier, String value) {
+    private DelayedCacheBroadcast(String identifier, String value, int broadcastTtl) {
       super(EVENT_DELAYED_CACHE_BROADCAST);
       this.identifier = identifier;
       this.value = value;
+      this.broadcastTtl = broadcastTtl;
     }
   }
 
@@ -190,6 +198,12 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
         DEFAULT_BROADCAST_NODES);
     if (broadcastNodes < 0) {
       throw new IllegalArgumentException(PAR_BROADCAST_NODES + " must not be negative");
+    }
+    broadcastTtl = Configuration.getInt(
+        prefix + "." + PAR_BROADCAST_TTL,
+        DEFAULT_BROADCAST_TTL);
+    if (broadcastTtl < 0) {
+      throw new IllegalArgumentException(PAR_BROADCAST_TTL + " must not be negative");
     }
     broadcastDelaySeconds = Configuration.getLong(
         prefix + "." + PAR_BROADCAST_DELAY_SECONDS,
@@ -777,7 +791,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
               myNode,
               (String) m.body,
               (String) m.value,
-              myPid);
+              myPid,
+              broadcastTtl);
           break;
         }
 
@@ -786,17 +801,21 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
         boolean firstReceipt = !m.dst.get_ident_bitset().get(identInt);
 
-        if (firstReceipt) {
+        if (firstReceipt && m.broadcastTtl > 0) {
           if (broadcastDelaySeconds == 0) {
             broadcastToAllNodes(
                 myNode,
                 (String) m.body,
                 (String) m.value,
-                myPid);
+                myPid,
+                m.broadcastTtl);
           } else {
             EDSimulator.add(
                 broadcastDelaySeconds * TIME_UNITS_PER_SECOND,
-                new DelayedCacheBroadcast((String) m.body, (String) m.value),
+                new DelayedCacheBroadcast(
+                    (String) m.body,
+                    (String) m.value,
+                    m.broadcastTtl),
                 myNode,
                 myPid);
           }
@@ -882,7 +901,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
             myNode,
             delayedBroadcast.identifier,
             delayedBroadcast.value,
-            myPid);
+            myPid,
+            delayedBroadcast.broadcastTtl);
         break;
       /*
        * case Timeout.TIMEOUT: // timeout
@@ -1037,6 +1057,18 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
       String identifier,
       String value,
       int myPid) {
+    broadcastToAllNodes(source, identifier, value, myPid, broadcastTtl);
+  }
+
+  private void broadcastToAllNodes(
+      Node source,
+      String identifier,
+      String value,
+      int myPid,
+      int broadcastTtl) {
+    if (broadcastTtl <= 0) {
+      return;
+    }
 
     UnreliableTransport networkTransport = (UnreliableTransport) Network.prototype.getProtocol(tid);
     List<Node> eligibleDestinations = new ArrayList<>();
@@ -1057,7 +1089,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     int destinationsToBroadcast = Math.min(broadcastNodes, eligibleDestinations.size());
     for (int i = 0; i < destinationsToBroadcast; i++) {
       Node destination = eligibleDestinations.get(i);
-      Message message = Message.makeCacheBroadcast(identifier, value);
+      Message message = Message.makeCacheBroadcast(identifier, value, broadcastTtl - 1);
       message.src = this.getKademliaNode();
       message.dst = destination
           .getKademliaProtocol()
